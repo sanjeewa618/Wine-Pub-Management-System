@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { KeyRound, Save, UserCircle2 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { KeyRound, PencilIcon, Save, UserCircle2 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
 export const CustomerSettingsPage = () => {
   const { state, updateProfile, changePassword } = useApp();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [profileForm, setProfileForm] = useState({
     name: "",
@@ -32,6 +33,46 @@ export const CustomerSettingsPage = () => {
       avatar: state.user?.avatar ?? "",
     });
   }, [state.user]);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setProfileError("Image must be less than 5MB");
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      setProfileError("Only JPG, PNG, WebP, and GIF files are supported");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProfileForm((prev) => ({
+        ...prev,
+        avatar: reader.result as string,
+      }));
+      setProfileError("");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemoveImage = () => {
+    setProfileForm((prev) => ({
+      ...prev,
+      avatar: "",
+    }));
+    setProfileError("");
+  };
 
   const handleProfileSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -94,6 +135,49 @@ export const CustomerSettingsPage = () => {
 
           <form className="mt-5 space-y-4" onSubmit={handleProfileSubmit}>
             <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">Profile Image</label>
+              <div className="flex flex-col gap-3">
+                {/* Avatar with pencil icon */}
+                <div
+                  onClick={handleAvatarClick}
+                  className="relative h-16 w-16 cursor-pointer rounded-full border-2 border-[#D4AF37] transition-opacity hover:opacity-80"
+                >
+                  <img
+                    src={
+                      profileForm.avatar ||
+                      "https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&q=80&w=300"
+                    }
+                    alt="Profile preview"
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/30 opacity-0 transition-opacity hover:opacity-100">
+                    <PencilIcon size={20} className="text-white" />
+                  </div>
+                </div>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+
+                {/* Remove button */}
+                {profileForm.avatar && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="w-full rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20"
+                  >
+                    Remove Image
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div>
               <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">Full Name</label>
               <input
                 value={profileForm.name}
@@ -122,27 +206,6 @@ export const CustomerSettingsPage = () => {
                 className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
                 placeholder="+9477xxxxxxx"
               />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">Profile Image URL</label>
-              <input
-                value={profileForm.avatar}
-                onChange={(event) => setProfileForm((prev) => ({ ...prev, avatar: event.target.value }))}
-                className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
-                placeholder="https://..."
-              />
-              <div className="mt-3 flex items-center gap-3 rounded-lg border border-[#2f2f2f] bg-[#171717] p-3">
-                <img
-                  src={
-                    profileForm.avatar ||
-                    "https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&q=80&w=300"
-                  }
-                  alt="Profile preview"
-                  className="h-14 w-14 rounded-full object-cover"
-                />
-                <p className="text-xs text-gray-400">Preview image shown in dashboard avatar if URL is valid.</p>
-              </div>
             </div>
 
             {profileMessage && <p className="rounded-lg border border-emerald-500/40 bg-emerald-700/10 p-3 text-sm text-emerald-200">{profileMessage}</p>}

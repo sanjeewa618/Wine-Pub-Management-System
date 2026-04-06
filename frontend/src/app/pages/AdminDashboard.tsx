@@ -1,20 +1,253 @@
-﻿import React from "react";
+﻿import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { useApp } from "../context/AppContext";
-import { Users, Wine, CalendarDays, DollarSign, TrendingUp, Package, Clock, ShieldCheck } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Users, Wine, CalendarDays, DollarSign, TrendingUp, Package, Clock, ShieldCheck, ArrowRight } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { apiRequest } from "../services/api";
+
+interface Order {
+  _id: string;
+  orderNumber?: string;
+  total: number;
+  totalPrice?: number;
+  createdAt: string;
+  status?: string;
+}
+
+interface StatCard {
+  title: string;
+  value: number | string;
+  change?: string;
+  icon: React.ReactNode;
+  color: string;
+  path: string;
+}
 
 export const AdminDashboard = () => {
   const { state } = useApp();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    activeReservations: 0,
+    totalOrders: 0,
+    registeredUsers: 0,
+  });
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [timeframe, setTimeframe] = useState<"daily" | "weekly" | "monthly">("weekly");
 
-  const data = [
-    { name: 'Mon', revenue: 4000, orders: 24 },
-    { name: 'Tue', revenue: 3000, orders: 18 },
-    { name: 'Wed', revenue: 5000, orders: 35 },
-    { name: 'Thu', revenue: 4500, orders: 28 },
-    { name: 'Fri', revenue: 7000, orders: 50 },
-    { name: 'Sat', revenue: 9000, orders: 75 },
-    { name: 'Sun', revenue: 8500, orders: 68 },
+  useEffect(() => {
+    fetchAdminData();
+  }, []);
+
+  const fetchAdminData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch users count - API returns { success: true, users }
+      const usersResponse = await apiRequest<any>("/users", { method: "GET" });
+      const users = usersResponse?.users || [];
+      const usersCount = Array.isArray(users)
+        ? users.filter((user: any) => String(user?.role || "").toLowerCase() === "customer").length
+        : 0;
+
+      // Fetch reservations - API returns { success: true, reservations }
+      const reservationsResponse = await apiRequest<any>("/reservations", { method: "GET" });
+      const reservations = reservationsResponse?.reservations || [];
+      const activeReservations = Array.isArray(reservations) ? reservations.filter((r: any) => {
+        const reservationDate = new Date(r.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return reservationDate >= today;
+      }).length : 0;
+
+      // Fetch orders - API returns { success: true, orders }
+      const ordersResponse = await apiRequest<any>("/orders", { method: "GET" });
+      const orders = ordersResponse?.orders || [];
+      const totalOrders = Array.isArray(orders) ? orders.length : 0;
+      const totalRevenue = Array.isArray(orders) ? orders.reduce((sum: number, order: any) => {
+        return sum + (order.total || order.totalPrice || 0);
+      }, 0) : 0;
+
+      setStats({
+        totalRevenue,
+        activeReservations,
+        totalOrders,
+        registeredUsers: usersCount,
+      });
+
+      // Build recent activities from real data
+      const activities: any[] = [];
+      
+      // Add latest reservations
+      const sortedReservations = (Array.isArray(reservations) ? [...reservations] : [])
+        .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 3);
+
+      sortedReservations.forEach((res: any) => {
+        activities.push({
+          text: `New reservation for ${res.guests} (Table ${res.tableNumbers?.join(", ") || "N/A"})`,
+          time: new Date(res.createdAt || new Date()).getTime(),
+          icon: "calendar",
+          type: "reservation",
+        });
+      });
+
+      // Add latest orders
+      const sortedOrders = (Array.isArray(orders) ? [...orders] : [])
+        .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 3);
+
+      sortedOrders.forEach((order: any) => {
+        const orderId = order._id?.slice(-4) || order.id?.slice(-4) || "????";
+        activities.push({
+          text: `Order #${orderId} confirmed - LKR ${(order.total || order.totalPrice || 0).toFixed(2)}`,
+          time: new Date(order.createdAt || new Date()).getTime(),
+          icon: "package",
+          type: "order",
+        });
+      });
+
+      // Sort by time descending
+      activities.sort((a, b) => b.time - a.time);
+      setRecentActivities(activities.slice(0, 5));
+
+      // Generate chart data from real orders
+      generateChartDataFromOrders(orders);
+
+    } catch (error) {
+      console.error("Error fetching admin data:", error);
+      setStats({
+        totalRevenue: 0,
+        activeReservations: 0,
+        totalOrders: 0,
+        registeredUsers: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateChartDataFromOrders = (orders: any[]) => {
+    const dailyData: { [key: string]: { revenue: number; count: number } } = {};
+    const today = new Date();
+
+    // Initialize last 7 days
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateKey = date.toISOString().split("T")[0];
+      dailyData[dateKey] = { revenue: 0, count: 0 };
+    }
+
+    // Aggregate orders by date
+    if (Array.isArray(orders)) {
+      orders.forEach((order: any) => {
+        try {
+          const orderDate = new Date(order.createdAt || new Date());
+          const dateKey = orderDate.toISOString().split("T")[0];
+          if (dailyData[dateKey]) {
+            const orderAmount = order.total || order.totalPrice || 0;
+            dailyData[dateKey].revenue += orderAmount;
+            dailyData[dateKey].count += 1;
+          }
+        } catch (e) {
+          console.error("Error processing order:", e);
+        }
+      });
+    }
+
+    // Convert to chart format
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const chartDataPoints = Object.entries(dailyData).map(([date, data]) => {
+      const d = new Date(date);
+      return {
+        name: dayNames[d.getDay()],
+        revenue: Math.round(data.revenue),
+        orders: data.count,
+      };
+    });
+
+    setChartData(chartDataPoints);
+  };
+
+  const generateChartData = () => {
+    // Will be called from fetchAdminData with real data
+    // This ensures chart updates when data is fetched
+  };
+
+  const statCards: StatCard[] = [
+    {
+      title: "Total Revenue",
+      value: `LKR ${stats.totalRevenue.toLocaleString()}`,
+      icon: <DollarSign size={24} />,
+      color: "text-green-400",
+      path: "/admin/orders",
+    },
+    {
+      title: "Active Reservations",
+      value: stats.activeReservations,
+      icon: <CalendarDays size={24} />,
+      color: "text-[#D4AF37]",
+      path: "/admin/reservations",
+    },
+    {
+      title: "Total Orders",
+      value: stats.totalOrders,
+      icon: <Package size={24} />,
+      color: "text-[#D4AF37]",
+      path: "/admin/orders",
+    },
+    {
+      title: "Registered Customers",
+      value: stats.registeredUsers,
+      icon: <Users size={24} />,
+      color: "text-[#D4AF37]",
+      path: "/admin/users",
+    },
   ];
+
+  const getTimeAgo = (timestamp: number) => {
+    const now = new Date().getTime();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
+    if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "reservation":
+        return <CalendarDays size={16} className="text-[#D4AF37]" />;
+      case "order":
+        return <Package size={16} className="text-green-400" />;
+      case "seller":
+        return <ShieldCheck size={16} className="text-blue-400" />;
+      case "stock":
+        return <Wine size={16} className="text-red-400" />;
+      case "payment":
+        return <DollarSign size={16} className="text-green-400" />;
+      default:
+        return <Clock size={16} className="text-gray-400" />;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-white text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+          <p className="mt-4">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -23,30 +256,26 @@ export const AdminDashboard = () => {
           <h1 className="text-3xl font-serif text-white font-bold mb-2">System Overview</h1>
           <p className="text-gray-400">Welcome back, {state.user?.name}. Here's what's happening today.</p>
         </div>
-        <div className="flex space-x-3 mt-4 md:mt-0">
-          <button className="bg-[#1a1a1a] border border-[#333] text-white px-4 py-2 rounded text-sm hover:border-[#D4AF37] transition-colors flex items-center">
-            <Clock size={14} className="mr-2 text-[#D4AF37]" /> Last 7 Days
-          </button>
-          <button className="bg-[#D4AF37] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#b5952f] transition-colors">
-            Download Report
-          </button>
-        </div>
+        <button 
+          onClick={fetchAdminData}
+          className="bg-[#D4AF37] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#b5952f] transition-colors"
+        >
+          Refresh Data
+        </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { title: "Total Revenue", value: "$41,000", change: "+12.5%", icon: <DollarSign size={24} />, color: "text-green-400" },
-          { title: "Active Reservations", value: "142", change: "+5.2%", icon: <CalendarDays size={24} />, color: "text-[#D4AF37]" },
-          { title: "Total Orders", value: "298", change: "+18.1%", icon: <Package size={24} />, color: "text-[#D4AF37]" },
-          { title: "Registered Users", value: "3,240", change: "+2.4%", icon: <Users size={24} />, color: "text-[#D4AF37]" },
-        ].map((stat, i) => (
-          <div key={i} className="bg-[#111] border border-[#333] p-6 rounded-xl hover:border-[#D4AF37]/50 transition-colors">
+        {statCards.map((stat, i) => (
+          <div
+            key={i}
+            onClick={() => navigate(stat.path)}
+            className="bg-[#111] border border-[#333] p-6 rounded-xl hover:border-[#D4AF37]/50 transition-all cursor-pointer transform hover:scale-105"
+          >
             <div className="flex justify-between items-start mb-4">
-              <div className={`p-3 bg-[#1a1a1a] rounded-lg ${stat.color}`}>{stat.icon}</div>
-              <span className={`text-xs font-bold px-2 py-1 rounded bg-[#1a1a1a] border border-[#333] ${stat.change.startsWith('+') ? 'text-green-400' : 'text-red-400'}`}>
-                {stat.change}
-              </span>
+              <div className={`p-3 bg-[#1a1a1a] rounded-lg ${stat.color}`}>
+                {stat.icon}
+              </div>
             </div>
             <h3 className="text-gray-400 text-sm font-bold uppercase tracking-wider mb-1">{stat.title}</h3>
             <p className="text-3xl font-serif text-white">{stat.value}</p>
@@ -58,34 +287,32 @@ export const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-[#111] border border-[#333] p-6 rounded-xl">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-white">Revenue Analytics</h3>
-            <div className="flex items-center space-x-2 text-xs">
-              <span className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#D4AF37] mr-1"></div> Revenue</span>
-              <span className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#D4AF37] mr-1"></div> Orders</span>
-            </div>
+            <h3 className="text-lg font-bold text-white">Revenue Analytics (Last 7 Days)</h3>
+            <button
+              onClick={() => navigate("/admin/analytics")}
+              className="inline-flex items-center gap-2 text-[#D4AF37] hover:text-white text-sm font-semibold transition-colors"
+            >
+              See More <ArrowRight size={16} />
+            </button>
           </div>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#D4AF37" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.8}/>
                     <stop offset="95%" stopColor="#D4AF37" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
                 <XAxis dataKey="name" stroke="#666" tick={{fill: '#666'}} axisLine={false} />
-                <YAxis stroke="#666" tick={{fill: '#666'}} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                <YAxis stroke="#666" tick={{fill: '#666'}} axisLine={false} tickFormatter={(value) => `$${(value/1000).toFixed(0)}k`} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#111', borderColor: '#333', color: '#fff' }}
                   itemStyle={{ color: '#fff' }}
+                  formatter={(value: any) => `$${value.toLocaleString()}`}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="#D4AF37" fillOpacity={1} fill="url(#colorRevenue)" />
-                <Area type="monotone" dataKey="orders" stroke="#D4AF37" fillOpacity={1} fill="url(#colorOrders)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -93,22 +320,25 @@ export const AdminDashboard = () => {
 
         <div className="bg-[#111] border border-[#333] p-6 rounded-xl flex flex-col">
           <h3 className="text-lg font-bold text-white mb-6">Recent Activity</h3>
-          <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
-            {[
-              { text: "New reservation for 4 (Table 12)", time: "10 mins ago", icon: <CalendarDays size={16} className="text-[#D4AF37]" /> },
-              { text: "Order #8421 confirmed", time: "25 mins ago", icon: <Package size={16} className="text-green-400" /> },
-              { text: "New seller application: Chateau Vineyards", time: "1 hour ago", icon: <ShieldCheck size={16} className="text-blue-400" /> },
-              { text: "Low stock alert: Dom PÃ©rignon 2012", time: "2 hours ago", icon: <Wine size={16} className="text-red-400" /> },
-              { text: "Payment received $450.00", time: "3 hours ago", icon: <DollarSign size={16} className="text-green-400" /> },
-            ].map((activity, i) => (
-              <div key={i} className="flex items-start">
-                <div className="mt-1 mr-4 bg-[#1a1a1a] p-2 rounded-full border border-[#333]">{activity.icon}</div>
-                <div>
-                  <p className="text-sm text-gray-200">{activity.text}</p>
-                  <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
-                </div>
+          <div className="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+            {recentActivities.length === 0 ? (
+              <div className="text-center text-gray-400 py-8">
+                <Clock size={32} className="mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No recent activities</p>
               </div>
-            ))}
+            ) : (
+              recentActivities.map((activity, i) => (
+                <div key={i} className="flex items-start">
+                  <div className="mt-1 mr-4 bg-[#1a1a1a] p-2 rounded-full border border-[#333]">
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-200">{activity.text}</p>
+                    <p className="text-xs text-gray-500 mt-1">{getTimeAgo(activity.time)}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
