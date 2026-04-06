@@ -5,6 +5,39 @@ const { User } = require("../models/User");
 const { Product } = require("../models/Product");
 const { Reservation } = require("../models/Reservation");
 const { Order } = require("../models/Order");
+const arracks = require("./arracks.import.json");
+const beers = require("./beers.import.json");
+const rums = require("./rums.import.json");
+const whiskeys = require("./whiskeys.import.json");
+const wines = require("./wines.import.json");
+const foods = require("./foods.import.json");
+const beverages = require("./beverages.import.json");
+
+function normalizeProduct(product, sellerId) {
+  const normalizedSizes = Array.isArray(product.sizes)
+    ? product.sizes.map((size) => (typeof size === "string" ? size : size?.size || String(size || ""))).filter(Boolean)
+    : [];
+
+  const normalizedSizePricing = Array.isArray(product.sizes)
+    ? product.sizes
+        .filter((size) => typeof size === "object" && size?.size)
+        .map((size) => ({
+          size: String(size.size),
+          price: Number(size.price ?? product.price ?? 0),
+        }))
+    : [];
+
+  return {
+    ...product,
+    sizes: normalizedSizes,
+    sizePricing: normalizedSizePricing,
+    image:
+      product.image ||
+      "https://images.unsplash.com/photo-1514361892635-eae31a3d0f1d?auto=format&fit=crop&q=80&w=1000",
+    sellerId: product.sellerId || sellerId,
+    isActive: product.isActive !== false,
+  };
+}
 
 async function seed() {
   await connectDB();
@@ -20,43 +53,8 @@ async function seed() {
   const seller = await User.create({ name: "Seller One", email: "seller@vinoverse.com", password: "Seller123!", role: "seller", status: "pending" });
   const customer = await User.create({ name: "Customer One", email: "customer@vinoverse.com", password: "Customer123!", role: "customer" });
 
-  await Product.insertMany([
-    {
-      name: "Coco Pure Arrack",
-      productType: "wine",
-      category: "Arrack",
-      subCategory: "100% Coconut Arrack",
-      brand: "Ceylon Spirit",
-      country: "Sri Lanka",
-      originType: "Local",
-      price: 2350,
-      sizes: ["50 ml", "750 ml"],
-      stock: 20,
-      rating: 4.5,
-      description: "Smooth coconut arrack with classic Sri Lankan profile.",
-      alcoholPercentage: "33%",
-      image: "https://images.unsplash.com/photo-1596392301391-e3f8ef32f6c9?auto=format&fit=crop&q=80&w=1000",
-      sellerId: seller._id,
-    },
-    {
-      name: "Truffle Fries",
-      productType: "bite",
-      category: "Quick Bites",
-      subCategory: "Fries",
-      brand: "Kitchen",
-      country: "Sri Lanka",
-      originType: "Local",
-      price: 1450,
-      sizes: ["1 serving"],
-      stock: 40,
-      rating: 4.8,
-      description: "Crispy truffle fries made for wine pairing.",
-      image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&q=80&w=1000",
-      spiceLevel: "Mild",
-      vegType: "Veg",
-      pairWith: "Wine",
-    },
-  ]);
+  const productSeedData = [...arracks, ...beers, ...rums, ...whiskeys, ...wines, ...foods, ...beverages].map((product) => normalizeProduct(product, seller._id));
+  await Product.insertMany(productSeedData);
 
   await Reservation.create({
     userId: customer._id,

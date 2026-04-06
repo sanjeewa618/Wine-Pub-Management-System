@@ -4,6 +4,23 @@ const { Order } = require("../models/Order");
 const { asyncHandler } = require("../utils/asyncHandler");
 const { ApiError } = require("../utils/ApiError");
 
+function toDeliveryAddress(rawAddress) {
+  if (!rawAddress) {
+    return { addressLine: "", city: "", province: "", notes: "" };
+  }
+
+  if (typeof rawAddress === "string") {
+    return { addressLine: rawAddress, city: "", province: "", notes: "" };
+  }
+
+  return {
+    addressLine: rawAddress.addressLine || "",
+    city: rawAddress.city || "",
+    province: rawAddress.province || "",
+    notes: rawAddress.notes || "",
+  };
+}
+
 async function getOrCreateCart(userId) {
   const cart = await Cart.findOneAndUpdate(
     { userId },
@@ -87,17 +104,24 @@ const checkout = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Cart is empty");
   }
 
+  const orderType = req.body.orderType || "pickup";
+  const deliveryAddress = toDeliveryAddress(req.body.deliveryAddress);
+
   const subtotal = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = Number((subtotal * 0.08).toFixed(2));
-  const deliveryCharge = req.body.orderType === "delivery" ? 500 : 0;
+  const deliveryCharge = orderType === "delivery" ? 500 : 0;
   const total = subtotal + tax + deliveryCharge;
 
   const order = await Order.create({
     userId: req.user._id,
     items: cart.items,
-    orderType: req.body.orderType || "pickup",
-    deliveryAddress: req.body.deliveryAddress || {},
+    orderType,
+    pickupDetails: {
+      tableNumber: req.body.pickupTableNumber || "",
+    },
+    deliveryAddress,
     paymentMethod: req.body.paymentMethod || "card",
+    paymentStatus: "unpaid",
     subtotal,
     tax,
     deliveryCharge,

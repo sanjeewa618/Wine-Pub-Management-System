@@ -1,15 +1,14 @@
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useApp } from "../context/AppContext";
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 
 export const CartPage = () => {
-  const { state, updateQuantity, removeFromCart, checkout } = useApp();
+  const navigate = useNavigate();
+  const { state, updateQuantity, removeFromCart } = useApp();
   const [orderType, setOrderType] = useState<"pickup" | "delivery">("pickup");
   const [address, setAddress] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("card");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState("");
   
   const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -22,22 +21,14 @@ export const CartPage = () => {
     if (!canCheckout) {
       return;
     }
-
-    setIsSubmitting(true);
     setCheckoutMessage("");
 
-    try {
-      const order = await checkout({
-        orderType,
-        deliveryAddress: address,
-        paymentMethod,
-      });
-      window.alert(`Order placed successfully. ${typeof order === "object" && order !== null && "_id" in order ? `Order ID: ${(order as { _id: string })._id}` : "Your cart has been cleared."}`);
-    } catch (error) {
-      setCheckoutMessage(error instanceof Error ? error.message : "Checkout failed");
-    } finally {
-      setIsSubmitting(false);
+    if (orderType === "pickup") {
+      navigate("/checkout/pickup");
+      return;
     }
+
+    navigate("/checkout/delivery", { state: { address } });
   };
 
   if (state.cart.length === 0) {
@@ -177,45 +168,6 @@ export const CartPage = () => {
                     />
                   </div>
                 )}
-
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-[#D4AF37] mb-2">Payment Method</p>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm text-gray-300">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="card"
-                        checked={paymentMethod === "card"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="accent-[#D4AF37]"
-                      />
-                      Credit / Debit Card
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-gray-300">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="wallet"
-                        checked={paymentMethod === "wallet"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="accent-[#D4AF37]"
-                      />
-                      Digital Wallet (PayPal / Apple Pay / Google Pay)
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-gray-300">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="cod"
-                        checked={paymentMethod === "cod"}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="accent-[#D4AF37]"
-                      />
-                      Cash on Delivery / Pickup
-                    </label>
-                  </div>
-                </div>
               </div>
               
               <div className="flex justify-between items-end mb-8">
@@ -225,17 +177,17 @@ export const CartPage = () => {
               
               <button
                 onClick={handleCheckout}
-                disabled={!canCheckout || isSubmitting}
+                disabled={!canCheckout}
                 className="w-full bg-[#D4AF37] text-black py-5 rounded-lg font-bold uppercase tracking-wider hover:bg-[#c39b22] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2 group"
               >
-                <span>{isSubmitting ? "Processing..." : "Proceed to Checkout"}</span>
+                <span>Proceed to Checkout</span>
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </button>
 
               {checkoutMessage && <div className="mt-4 text-sm text-red-300">{checkoutMessage}</div>}
 
               <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed">
-                Secure checkout with SSL/TLS encryption. Payment processing can be integrated to backend API for production.
+                Secure checkout enabled. Next step lets you choose payment flow based on pickup or home delivery.
               </div>
             </div>
           </div>

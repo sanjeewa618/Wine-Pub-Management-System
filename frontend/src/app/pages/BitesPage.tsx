@@ -43,7 +43,25 @@ export const BitesPage = () => {
 
         <div className="mb-8 bg-[#111] border border-[#2c2c2c] rounded-2xl p-4 md:p-5 space-y-5">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div>
+              <p className="text-[12px] uppercase tracking-wider text-[#D4AF37] font-bold mb-2">Category</p>
+              <div className="relative">
+                <select
+                  value={category}
+                  onChange={(event) => setCategory(event.target.value)}
+                  className="w-full bg-[#0f0f0f] border border-[#333] rounded-lg px-4 py-3 text-white appearance-none cursor-pointer focus:outline-none focus:border-[#D4AF37]"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="relative lg:col-span-2">
+              <p className="text-[12px] uppercase tracking-wider text-[#D4AF37] font-bold mb-2">Search</p>
               <input
                 type="text"
                 placeholder="Search bites..."
@@ -52,20 +70,6 @@ export const BitesPage = () => {
                 className="w-full bg-[#0f0f0f] border border-[#333] rounded-lg pl-11 pr-4 py-3 text-white focus:outline-none focus:border-[#D4AF37]"
               />
               <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-            </div>
-
-            <div className="relative">
-              <select
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-                className="w-full bg-[#0f0f0f] border border-[#333] rounded-lg px-4 py-3 text-white appearance-none cursor-pointer focus:outline-none focus:border-[#D4AF37]"
-              >
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
         </div>
@@ -98,6 +102,16 @@ export const BitesPage = () => {
                   <h3 className="text-xl font-bold text-white leading-tight">{bite.name}</h3>
                   <span className="text-[#D4AF37] font-serif text-2xl">{formatLkr(bite.price)}</span>
                 </div>
+
+                {Array.isArray(bite.sizePricing) && bite.sizePricing.length > 0 && (
+                  <div className="mb-4 rounded-lg border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-gray-300 space-y-1">
+                    {bite.sizePricing.map((entry) => (
+                      <p key={`${bite.id}-${entry.size}`}>
+                        <span className="text-[#D4AF37] font-semibold">{entry.size} Price:</span> {formatLkr(entry.price)}
+                      </p>
+                    ))}
+                  </div>
+                )}
 
                 <p className="text-gray-400 text-sm leading-relaxed mb-5 min-h-[44px]">{bite.description}</p>
 

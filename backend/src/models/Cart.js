@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const cartItemSchema = new mongoose.Schema(
   {
     productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
-    productType: { type: String, enum: ["wine", "arrack", "whiskey", "whisky", "rum", "beer", "bite"], required: true },
+    productType: { type: String, enum: ["wine", "arrack", "whiskey", "whisky", "rum", "beer", "bite", "food", "beverage"], required: true },
     name: { type: String, required: true },
     image: { type: String, default: "" },
     quantity: { type: Number, default: 1 },

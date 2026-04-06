@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    productType: { type: String, enum: ["wine", "arrack", "whiskey", "whisky", "rum", "beer", "bite"], required: true },
+    productType: { type: String, enum: ["wine", "arrack", "whiskey", "whisky", "rum", "beer", "bite", "food", "beverage"], required: true },
     category: { type: String, required: true, trim: true },
     subCategory: { type: String, default: "" },
     brand: { type: String, default: "" },
@@ -11,6 +11,12 @@ const productSchema = new mongoose.Schema(
     originType: { type: String, enum: ["Local", "Imported"], default: "Local" },
     price: { type: Number, required: true, min: 0 },
     sizes: [{ type: String }],
+    sizePricing: [
+      {
+        size: { type: String, trim: true },
+        price: { type: Number, min: 0 },
+      },
+    ],
     stock: { type: Number, default: 0 },
     rating: { type: Number, default: 4 },
     description: { type: String, default: "" },

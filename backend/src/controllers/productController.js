@@ -11,7 +11,10 @@ const listProducts = asyncHandler(async (req, res) => {
   const { category, brand, country, originType, minPrice, maxPrice, search } = req.query;
 
   const filter = {
-    productType: productType === "wine" ? { $in: ["wine", "arrack", "whiskey", "whisky", "rum", "beer"] } : productType,
+    productType:
+      productType === "wine"
+        ? { $in: ["wine", "arrack", "whiskey", "whisky", "rum", "beer"] }
+        : { $in: ["bite", "food", "beverage"] },
     isActive: { $ne: false },
   };
 

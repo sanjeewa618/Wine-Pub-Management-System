@@ -2,6 +2,7 @@
 import { motion } from "motion/react";
 import { CalendarDays, Clock, Users, CheckCircle } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { apiRequest } from "../services/api";
 
 export const ReservationsPage = () => {
   const { createReservation } = useApp();
@@ -12,13 +13,63 @@ export const ReservationsPage = () => {
     date: "",
     time: "",
     guests: "2",
+    tableNumbers: [] as string[],
     name: "",
     email: "",
     phone: "",
     requests: ""
   });
+  const [availableTables, setAvailableTables] = useState<string[]>([]);
+  const [isLoadingTables, setIsLoadingTables] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState("");
 
   const timeSlots = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"];
+
+  const fetchAvailability = async (date: string, time: string) => {
+    if (!date || !time) {
+      setAvailableTables([]);
+      setFormData((prev) => ({ ...prev, tableNumbers: [] }));
+      setAvailabilityError("");
+      return;
+    }
+
+    setIsLoadingTables(true);
+    setAvailabilityError("");
+    try {
+      const response = await apiRequest<{ availableTables: string[] }>(
+        `/reservations/availability?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`
+      );
+
+      const tables = response.availableTables ?? [];
+      setAvailableTables(tables);
+      setFormData((prev) => ({
+        ...prev,
+        tableNumbers: prev.tableNumbers.filter((table) => tables.includes(table)),
+      }));
+    } catch (error) {
+      setAvailableTables([]);
+      setFormData((prev) => ({ ...prev, tableNumbers: [] }));
+      setAvailabilityError(error instanceof Error ? error.message : "Unable to load table availability");
+    } finally {
+      setIsLoadingTables(false);
+    }
+  };
+
+  const toggleTableSelection = (tableLabel: string) => {
+    setFormData((prev) => {
+      const selected = prev.tableNumbers;
+
+      if (selected.includes(tableLabel)) {
+        return { ...prev, tableNumbers: selected.filter((table) => table !== tableLabel) };
+      }
+
+      if (selected.length >= 2) {
+        return prev;
+      }
+
+      return { ...prev, tableNumbers: [...selected, tableLabel] };
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +80,7 @@ export const ReservationsPage = () => {
         date: formData.date,
         time: formData.time,
         guests: formData.guests,
+        tableNumbers: formData.tableNumbers,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -88,7 +140,11 @@ export const ReservationsPage = () => {
                     <input 
                       type="date" 
                       value={formData.date}
-                      onChange={(e) => setFormData({...formData, date: e.target.value})}
+                      onChange={(e) => {
+                        const nextDate = e.target.value;
+                        setFormData((prev) => ({ ...prev, date: nextDate }));
+                        void fetchAvailability(nextDate, formData.time);
+                      }}
                       className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                     />
                   </div>
@@ -106,6 +162,7 @@ export const ReservationsPage = () => {
                       <option value="9+">9+ Guests (Contact us)</option>
                     </select>
                   </div>
+
                 </div>
 
                 <div className="space-y-4">
@@ -116,7 +173,10 @@ export const ReservationsPage = () => {
                     {timeSlots.map((time) => (
                       <button
                         key={time}
-                        onClick={() => setFormData({...formData, time})}
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, time }));
+                          void fetchAvailability(formData.date, time);
+                        }}
                         className={`py-3 rounded-lg text-sm font-bold transition-all duration-300 ${
                           formData.time === time 
                             ? "bg-[#D4AF37] text-black border border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.3)]" 
@@ -129,10 +189,50 @@ export const ReservationsPage = () => {
                   </div>
                 </div>
 
+                <div className="space-y-3">
+                  <label className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    <Users size={16} className="mr-2 text-[#D4AF37]" /> Preferred Tables (Max 2)
+                  </label>
+                  {!formData.date || !formData.time ? (
+                    <p className="text-sm text-gray-400">Select date and time first to see available tables.</p>
+                  ) : isLoadingTables ? (
+                    <p className="text-sm text-gray-400">Loading available tables...</p>
+                  ) : availabilityError ? (
+                    <p className="text-sm text-red-300">{availabilityError}</p>
+                  ) : availableTables.length === 0 ? (
+                    <p className="text-sm text-red-300">No available tables for this slot.</p>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                        {availableTables.map((table) => {
+                          const selected = formData.tableNumbers.includes(table);
+                          return (
+                            <button
+                              type="button"
+                              key={table}
+                              onClick={() => toggleTableSelection(table)}
+                              className={`py-2 rounded-lg text-xs font-bold border transition-colors ${
+                                selected
+                                  ? "bg-[#D4AF37] border-[#D4AF37] text-black"
+                                  : "bg-[#1a1a1a] border-[#333] text-gray-200 hover:border-[#D4AF37]/60"
+                              }`}
+                            >
+                              {table}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        Available tables: {availableTables.length} / 25 | Selected: {formData.tableNumbers.join(", ") || "None"}
+                      </p>
+                    </>
+                  )}
+                </div>
+
                 <div className="pt-8">
                   <button 
                     onClick={() => setStep(2)}
-                    disabled={!formData.date || !formData.time}
+                    disabled={!formData.date || !formData.time || formData.tableNumbers.length === 0}
                     className="w-full bg-[#D4AF37] disabled:bg-[#333] disabled:text-gray-500 text-white py-5 rounded-lg font-bold uppercase tracking-wider hover:bg-[#b5952f] transition-colors"
                   >
                     Continue to Contact Details
@@ -145,7 +245,7 @@ export const ReservationsPage = () => {
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-serif text-[#D4AF37] font-bold">Contact Details</h2>
-                  <button onClick={() => setStep(1)} className="text-sm text-gray-400 hover:text-white uppercase tracking-wider font-bold">â† Back</button>
+                  <button onClick={() => setStep(1)} className="text-sm text-gray-400 hover:text-white uppercase tracking-wider font-bold">&larr; Back</button>
                 </div>
 
                 {errorMessage && <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{errorMessage}</div>}
@@ -222,6 +322,7 @@ export const ReservationsPage = () => {
                 <div className="p-6 bg-[#1a1a1a] border border-[#333] rounded-xl inline-block text-left mx-auto max-w-sm w-full">
                   <p className="text-sm text-gray-400 uppercase tracking-widest font-bold mb-2">Booking Reference</p>
                   <p className="text-2xl text-[#D4AF37] font-mono tracking-widest mb-4">{bookingReference}</p>
+                  <p className="text-sm text-gray-300 mb-4">Table(s): {formData.tableNumbers.join(", ")}</p>
                   <button onClick={() => setStep(1)} className="w-full bg-[#333] text-white py-3 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-[#444] transition-colors">
                     Make Another Booking
                   </button>

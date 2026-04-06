@@ -26,6 +26,7 @@ interface Product {
   brand?: string;
   country?: string;
   originType?: string;
+  sizePricing?: { size: string; price: number }[];
 }
 
 interface CartItem extends Product {
@@ -48,8 +49,8 @@ interface AppContextType {
   addToCart: (product: Product, size?: string) => Promise<void>;
   removeFromCart: (productId: string, selectedSize?: string) => Promise<void>;
   updateQuantity: (productId: string, quantity: number, selectedSize?: string) => Promise<void>;
-  checkout: (payload: { orderType: "pickup" | "delivery"; deliveryAddress?: string; paymentMethod: string }) => Promise<unknown>;
-  createReservation: (payload: { date: string; time: string; guests: string; name: string; email: string; phone: string; requests: string }) => Promise<unknown>;
+  checkout: (payload: { orderType: "pickup" | "delivery"; deliveryAddress?: string; paymentMethod: string; pickupTableNumber?: string }) => Promise<unknown>;
+  createReservation: (payload: { date: string; time: string; guests: string; tableNumbers: string[]; name: string; email: string; phone: string; requests: string }) => Promise<unknown>;
   toggleTheme: () => void;
   products: Product[];
 }
@@ -245,16 +246,22 @@ function mapProduct(product: any): Product {
   return {
     id: String(product?.id ?? product?._id ?? ""),
     name: product?.name ?? "Untitled",
-    type: product?.productType === "bite" ? "bite" : "wine",
+    type: ["bite", "food", "beverage"].includes(product?.productType) ? "bite" : "wine",
     category: product?.category ?? "General",
     price: Number(product?.price ?? 0),
     image:
-      product?.image ??
+      product?.image ||
       "https://images.unsplash.com/photo-1514361892635-eae31a3d0f1d?auto=format&fit=crop&q=80&w=800",
     rating: Number(product?.rating ?? 0),
     description: product?.description ?? "",
     alcohol: product?.alcoholPercentage ?? product?.alcohol,
     sizes: product?.sizes ?? [],
+    sizePricing: Array.isArray(product?.sizePricing)
+      ? product.sizePricing.map((entry: any) => ({
+          size: String(entry?.size ?? ""),
+          price: Number(entry?.price ?? 0),
+        }))
+      : [],
     sellerId: String(product?.sellerId?._id ?? product?.sellerId ?? ""),
     brand: product?.brand ?? "",
     country: product?.country ?? "",
@@ -508,7 +515,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const checkout = async (payload: { orderType: "pickup" | "delivery"; deliveryAddress?: string; paymentMethod: string }) => {
+  const checkout = async (payload: { orderType: "pickup" | "delivery"; deliveryAddress?: string; paymentMethod: string; pickupTableNumber?: string }) => {
     if (!getApiToken()) {
       throw new Error("Please sign in before checkout");
     }
@@ -519,6 +526,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         orderType: payload.orderType,
         deliveryAddress: payload.deliveryAddress || "",
         paymentMethod: payload.paymentMethod,
+        pickupTableNumber: payload.pickupTableNumber || "",
       }),
     });
 
@@ -530,7 +538,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return response.order;
   };
 
-  const createReservation = async (payload: { date: string; time: string; guests: string; name: string; email: string; phone: string; requests: string }) => {
+  const createReservation = async (payload: { date: string; time: string; guests: string; tableNumbers: string[]; name: string; email: string; phone: string; requests: string }) => {
     if (!getApiToken()) {
       throw new Error("Please sign in before creating a reservation");
     }
@@ -541,6 +549,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         date: payload.date,
         time: payload.time,
         guestCount: payload.guests,
+        tableLabel: payload.tableNumbers[0] || "",
+        tableLabels: payload.tableNumbers,
         customerName: payload.name,
         email: payload.email,
         phone: payload.phone,

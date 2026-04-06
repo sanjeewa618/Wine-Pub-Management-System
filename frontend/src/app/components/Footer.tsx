@@ -66,6 +66,7 @@ export const Footer = () => {
             <p className="text-gray-400 text-sm mb-4">
               Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.
             </p>
+        
             <form className="flex flex-col space-y-3" onSubmit={(e) => e.preventDefault()}>
               <input
                 type="email"

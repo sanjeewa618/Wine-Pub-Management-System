@@ -10,6 +10,9 @@ import { WinesPage } from "./pages/WinesPage";
 import { BitesPage } from "./pages/BitesPage";
 import { ReservationsPage } from "./pages/ReservationsPage";
 import { CartPage } from "./pages/CartPage";
+import { PickupCheckoutPage } from "./pages/PickupCheckoutPage";
+import { DeliveryCheckoutPage } from "./pages/DeliveryCheckoutPage";
+import { OrderTrackingPage } from "./pages/OrderTrackingPage";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { AdminSectionPage } from "./pages/AdminSectionPage";
 import { SellerDashboard } from "./pages/SellerDashboard";
@@ -84,6 +87,9 @@ export const router = createBrowserRouter([
           { path: "wines", element: <WinesPage /> },
           { path: "reservations", element: <ReservationsPage /> },
           { path: "cart", element: <CartPage /> },
+          { path: "checkout/pickup", element: <PickupCheckoutPage /> },
+          { path: "checkout/delivery", element: <DeliveryCheckoutPage /> },
+          { path: "orders/:orderId/tracking", element: <OrderTrackingPage /> },
           { path: "bites", element: <BitesPage /> },
           { path: "about", element: <div className="pt-32 pb-24 text-center min-h-screen text-white"><h1 className="text-4xl font-serif text-[#D4AF37]">About Us</h1></div> },
           { path: "contact", element: <div className="pt-32 pb-24 text-center min-h-screen text-white"><h1 className="text-4xl font-serif text-[#D4AF37]">Contact Us</h1></div> },

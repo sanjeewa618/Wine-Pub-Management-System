@@ -12,6 +12,7 @@ const reservationSchema = new mongoose.Schema(
     specialRequests: { type: String, default: "" },
     status: { type: String, enum: ["pending", "confirmed", "completed", "cancelled"], default: "pending" },
     tableLabel: { type: String, default: "" },
+    tableLabels: [{ type: String }],
     bookingReference: { type: String, required: true, unique: true },
   },
   { timestamps: true }
