@@ -1,5 +1,7 @@
 const { User } = require("../models/User");
 const { Notification } = require("../models/Notification");
+const { Order } = require("../models/Order");
+const { Reservation } = require("../models/Reservation");
 const { asyncHandler } = require("../utils/asyncHandler");
 const { ApiError } = require("../utils/ApiError");
 const { sendEmail } = require("../utils/emailService");
@@ -62,4 +64,25 @@ const approveSeller = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Seller approved successfully", user: { id: seller._id, email: seller.email, role: seller.role, status: seller.status } });
 });
 
-module.exports = { listUsers, updateUser, blockUser, approveSeller };
+const deleteCustomer = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).select("name email role");
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (user.role !== "customer") {
+    throw new ApiError(400, "Only customer accounts can be deleted from this action");
+  }
+
+  await Promise.all([
+    Order.deleteMany({ userId: user._id }),
+    Reservation.deleteMany({ userId: user._id }),
+    Notification.deleteMany({ userId: user._id }),
+    User.findByIdAndDelete(user._id),
+  ]);
+
+  res.json({
+    success: true,
+    message: `Customer ${user.name} deleted successfully`,
+  });
+});
+
+module.exports = { listUsers, updateUser, blockUser, approveSeller, deleteCustomer };

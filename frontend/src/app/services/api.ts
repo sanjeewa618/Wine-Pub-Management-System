@@ -34,8 +34,9 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   }
 
   const response = await fetch(buildApiUrl(path), {
-    credentials: "include",
     ...options,
+    credentials: "include",
+    cache: "no-store",
     headers,
   });
 

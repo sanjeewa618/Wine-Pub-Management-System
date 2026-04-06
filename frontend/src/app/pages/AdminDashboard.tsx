@@ -55,12 +55,9 @@ export const AdminDashboard = () => {
       // Fetch reservations - API returns { success: true, reservations }
       const reservationsResponse = await apiRequest<any>("/reservations", { method: "GET" });
       const reservations = reservationsResponse?.reservations || [];
-      const activeReservations = Array.isArray(reservations) ? reservations.filter((r: any) => {
-        const reservationDate = new Date(r.date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return reservationDate >= today;
-      }).length : 0;
+      const activeReservations = Array.isArray(reservations)
+        ? reservations.filter((r: any) => String(r.status || "").toLowerCase() === "confirmed").length
+        : 0;
 
       // Fetch orders - API returns { success: true, orders }
       const ordersResponse = await apiRequest<any>("/orders", { method: "GET" });

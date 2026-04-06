@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { CalendarDays, Clock, Users, CheckCircle } from "lucide-react";
 import { useApp } from "../context/AppContext";
@@ -6,6 +6,7 @@ import { apiRequest } from "../services/api";
 
 export const ReservationsPage = () => {
   const { createReservation } = useApp();
+  const defaultReservationTimeSlots = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"];
   const [step, setStep] = useState(1);
   const [errorMessage, setErrorMessage] = useState("");
   const [bookingReference, setBookingReference] = useState("VN-8429X");
@@ -23,7 +24,25 @@ export const ReservationsPage = () => {
   const [isLoadingTables, setIsLoadingTables] = useState(false);
   const [availabilityError, setAvailabilityError] = useState("");
 
-  const timeSlots = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"];
+  const [timeSlots, setTimeSlots] = useState<string[]>(defaultReservationTimeSlots);
+
+  useEffect(() => {
+    const loadTimeSlots = async () => {
+      try {
+        const response = await apiRequest<{ config?: { timeSlots?: string[] } }>("/reservations/config");
+        const slots = defaultReservationTimeSlots;
+        setTimeSlots(slots);
+        setFormData((prev) => ({
+          ...prev,
+          time: slots.includes(prev.time) ? prev.time : slots[0],
+        }));
+      } catch {
+        // Keep default slots if config fetch fails.
+      }
+    };
+
+    void loadTimeSlots();
+  }, []);
 
   const fetchAvailability = async (date: string, time: string) => {
     if (!date || !time) {

@@ -35,6 +35,13 @@ export const AuthPage = () => {
     setIsLogin(mode === "login");
     setErrorMessage("");
     setSuccessMessage("");
+    setShowPassword(false);
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      role: "customer",
+    });
   }, [mode]);
 
   const navigateByRole = (role: Role) => {
