@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { apiRequest } from "../services/api";
+import { EditableProductItem, ProductEditorModal, ProductEditorMode } from "../components/ProductEditorModal";
 
 type AdminSection =
   | "users"
@@ -75,6 +76,60 @@ interface ReservationAdminConfig {
   totalTables: number;
   timeSlots: string[];
   tableNumbers: string[];
+}
+
+interface AdminWineItem {
+  _id: string;
+  name: string;
+  productType: "wine" | "arrack" | "whiskey" | "whisky" | "rum" | "beer";
+  category: string;
+  subCategory?: string;
+  brand?: string;
+  country?: string;
+  originType?: string;
+  price: number;
+  sizes?: string[];
+  sizePricing?: { size: string; price: number }[];
+  stock: number;
+  rating?: number;
+  description?: string;
+  alcoholPercentage?: string;
+  image?: string;
+  spiceLevel?: string;
+  vegType?: string;
+  pairWith?: string;
+  popularInPub?: boolean;
+  sellerId?: string | null;
+  isActive?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AdminBiteItem {
+  _id: string;
+  name: string;
+  productType: "bite" | "food" | "beverage";
+  category: string;
+  subCategory?: string;
+  brand?: string;
+  country?: string;
+  originType?: string;
+  price: number;
+  sizes?: Array<string | { size: string; price: number }>;
+  sizePricing?: { size: string; price: number }[];
+  stock: number;
+  rating?: number;
+  description?: string;
+  alcoholPercentage?: string;
+  image?: string;
+  spiceLevel?: string;
+  vegType?: string;
+  pairWith?: string;
+  popularInPub?: boolean;
+  sellerId?: string | null;
+  isActive?: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const sectionData: Record<
@@ -267,6 +322,8 @@ const statusColorMap = {
 export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageProps) => {
   const data = sectionData[section];
   const defaultReservationTimeSlots = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"];
+  const outOfStockSectionRef = useRef<HTMLDivElement | null>(null);
+  const outOfStockBitesSectionRef = useRef<HTMLDivElement | null>(null);
   const [pendingSellers, setPendingSellers] = useState<PendingSeller[]>([]);
   const [isLoadingSellers, setIsLoadingSellers] = useState(false);
   const [isApprovingSellerId, setIsApprovingSellerId] = useState<string | null>(null);
@@ -288,12 +345,26 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
   const [selectedAvailabilityTime, setSelectedAvailabilityTime] = useState<string>("18:00");
   const [availableTables, setAvailableTables] = useState<string[]>([]);
   const [isUpdatingReservationId, setIsUpdatingReservationId] = useState<string | null>(null);
+  const [wineItems, setWineItems] = useState<AdminWineItem[]>([]);
+  const [isLoadingWines, setIsLoadingWines] = useState(false);
+  const [showOutOfStockList, setShowOutOfStockList] = useState(false);
+  const [biteItems, setBiteItems] = useState<AdminBiteItem[]>([]);
+  const [isLoadingBites, setIsLoadingBites] = useState(false);
+  const [showOutOfStockBitesList, setShowOutOfStockBitesList] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [productModalMode, setProductModalMode] = useState<ProductEditorMode>("wine");
+  const [productModalItem, setProductModalItem] = useState<EditableProductItem | null>(null);
+  const [isChangePickerOpen, setIsChangePickerOpen] = useState(false);
+  const [changePickerMode, setChangePickerMode] = useState<ProductEditorMode>("wine");
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | "">("");
 
   const isSellersSection = section === "sellers";
   const isUsersSection = section === "users";
   const isReservationsSection = section === "reservations";
+  const isWinesSection = section === "wines";
+  const isBitesSection = section === "bites";
 
   const loadPendingSellers = async () => {
     setIsLoadingSellers(true);
@@ -437,6 +508,176 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
 
     void loadReservationsSectionData();
   }, [isReservationsSection]);
+
+  const loadWinesSectionData = async (options?: { preserveFeedback?: boolean }) => {
+    setIsLoadingWines(true);
+    if (!options?.preserveFeedback) {
+      setFeedbackMessage("");
+    }
+
+    try {
+      const [winesResponse, sellersResponse] = await Promise.all([
+        apiRequest<{ items?: AdminWineItem[] }>("/wines"),
+        apiRequest<{ sellers?: SellerUser[]; stats?: { totalSellers?: number } }>("/users/sellers/list"),
+      ]);
+
+      setWineItems(winesResponse.items || []);
+      if (sellersResponse.sellers) {
+        setSellersList(sellersResponse.sellers);
+      }
+      if (sellersResponse.stats) {
+        setSellerStats((prev) => ({
+          totalSellers: Number(sellersResponse.stats?.totalSellers || prev?.totalSellers || 0),
+          activeSellers: Number(prev?.activeSellers || 0),
+          pendingSellers: Number(prev?.pendingSellers || 0),
+          blockedSellers: Number(prev?.blockedSellers || 0),
+          averageRating: Number(prev?.averageRating || 0),
+        }));
+      }
+    } catch (error) {
+      setFeedbackType("error");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to load liquor data");
+    } finally {
+      setIsLoadingWines(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isWinesSection) {
+      return;
+    }
+
+    void loadWinesSectionData();
+  }, [isWinesSection]);
+
+  const loadBitesSectionData = async (options?: { preserveFeedback?: boolean }) => {
+    setIsLoadingBites(true);
+    if (!options?.preserveFeedback) {
+      setFeedbackMessage("");
+    }
+
+    try {
+      const [bitesResponse, sellersResponse] = await Promise.all([
+        apiRequest<{ items?: AdminBiteItem[] }>("/bites"),
+        apiRequest<{ sellers?: SellerUser[] }>("/users/sellers/list"),
+      ]);
+
+      setBiteItems(bitesResponse.items || []);
+      if (sellersResponse.sellers) {
+        setSellersList(sellersResponse.sellers);
+      }
+    } catch (error) {
+      setFeedbackType("error");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to load menu data");
+    } finally {
+      setIsLoadingBites(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isBitesSection) {
+      return;
+    }
+
+    void loadBitesSectionData();
+  }, [isBitesSection]);
+
+  useEffect(() => {
+    if (!isWinesSection && !isBitesSection) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      if (isWinesSection) {
+        void loadWinesSectionData();
+      }
+      if (isBitesSection) {
+        void loadBitesSectionData();
+      }
+    }, 30000);
+
+    return () => window.clearInterval(timer);
+  }, [isBitesSection, isWinesSection]);
+
+  const openAddProductModal = (mode: ProductEditorMode) => {
+    setProductModalMode(mode);
+    setProductModalItem(null);
+    setIsProductModalOpen(true);
+  };
+
+  const openEditProductModal = (mode: ProductEditorMode, item: AdminWineItem | AdminBiteItem) => {
+    setProductModalMode(mode);
+    setProductModalItem(item);
+    setIsProductModalOpen(true);
+  };
+
+  const closeProductModal = () => {
+    if (isSavingProduct) {
+      return;
+    }
+
+    setIsProductModalOpen(false);
+    setProductModalItem(null);
+  };
+
+  const openChangePicker = (mode: ProductEditorMode) => {
+    setChangePickerMode(mode);
+    setIsChangePickerOpen(true);
+  };
+
+  const closeChangePicker = () => {
+    setIsChangePickerOpen(false);
+  };
+
+  const handlePickItemForEdit = (item: AdminWineItem | AdminBiteItem) => {
+    setIsChangePickerOpen(false);
+    openEditProductModal(changePickerMode, item);
+  };
+
+  const handleOutOfStockCardClick = () => {
+    setShowOutOfStockList(true);
+    outOfStockSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleSaveProduct = async (payload: Record<string, unknown>, itemId?: string) => {
+    const isWine = productModalMode === "wine";
+    const basePath = isWine ? "/wines" : "/bites";
+    const targetPath = itemId ? `${basePath}/${itemId}` : basePath;
+
+    setIsSavingProduct(true);
+    setFeedbackMessage("");
+
+    try {
+      await apiRequest(targetPath, {
+        method: itemId ? "PUT" : "POST",
+        body: JSON.stringify(payload),
+      });
+
+      if (isWine) {
+        await loadWinesSectionData({ preserveFeedback: true });
+      } else {
+        await loadBitesSectionData({ preserveFeedback: true });
+      }
+
+      setFeedbackType("success");
+      setFeedbackMessage(itemId ? "Item updated successfully." : "Item added successfully.");
+      setIsProductModalOpen(false);
+      setProductModalItem(null);
+      setIsChangePickerOpen(false);
+    } catch (error) {
+      setFeedbackType("error");
+      const message = error instanceof Error ? error.message : "Failed to save item";
+      setFeedbackMessage(message);
+      throw new Error(message);
+    } finally {
+      setIsSavingProduct(false);
+    }
+  };
+
+  const handleOutOfStockBitesCardClick = () => {
+    setShowOutOfStockBitesList(true);
+    outOfStockBitesSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const handleReservationStatus = async (reservationId: string, status: "confirmed" | "cancelled") => {
     setIsUpdatingReservationId(reservationId);
@@ -632,6 +873,87 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     ];
   }, [availableTables.length, data.kpis, isReservationsSection, reservationItems, selectedAvailabilityDate, selectedAvailabilityTime]);
 
+  const winesKpis = useMemo(() => {
+    if (!isWinesSection) {
+      return data.kpis;
+    }
+
+    const totalLiquors = wineItems.length;
+    const registeredSuppliers = sellerStats?.totalSellers || sellersList.length;
+    const outOfStockCategories = new Set(wineItems.filter((item) => Number(item.stock || 0) <= 0).map((item) => item.productType)).size;
+
+    return [
+      { label: "Total Number Of Liquours", value: String(totalLiquors), delta: "arrack, wine, beer, whiskey, rum" },
+      { label: "Total Registered Liquour Suppliers", value: String(registeredSuppliers), delta: "admin and sellers can add" },
+      { label: "Out Of Stock Categories", value: String(outOfStockCategories), delta: "click to view list" },
+    ];
+  }, [data.kpis, isWinesSection, sellerStats?.totalSellers, sellersList.length, wineItems]);
+
+  const outOfStockLiquors = useMemo(
+    () => wineItems.filter((item) => Number(item.stock || 0) <= 0).sort((a, b) => a.productType.localeCompare(b.productType)),
+    [wineItems]
+  );
+
+  const recentLiquorActivities = useMemo(() => {
+    const productActivities = wineItems.slice(0, 20).map((item) => ({
+      id: `product-${item._id}`,
+      title: `${item.name} ${new Date(item.createdAt).getTime() === new Date(item.updatedAt).getTime() ? "added" : "updated"}`,
+      detail: `${item.productType.toUpperCase()} · ${item.category} · Stock ${item.stock}`,
+      time: new Date(item.updatedAt || item.createdAt).getTime(),
+    }));
+
+    const sellerActivities = sellersList.slice(0, 20).map((seller) => ({
+      id: `seller-${seller._id}`,
+      title: `${seller.name} supplier account ${seller.status === "pending" ? "registered" : seller.status}`,
+      detail: `${seller.email} · ${seller.sellerType || "seller"}`,
+      time: new Date(seller.createdAt || Date.now()).getTime(),
+    }));
+
+    return [...productActivities, ...sellerActivities].sort((a, b) => b.time - a.time).slice(0, 12);
+  }, [sellersList, wineItems]);
+
+  const bitesKpis = useMemo(() => {
+    if (!isBitesSection) {
+      return data.kpis;
+    }
+
+    const totalItems = biteItems.length;
+    const restaurantSuppliers = sellersList.filter((seller) => ["restaurant", "snacks_provider"].includes(String(seller.sellerType || ""))).length;
+    const outOfStockItems = biteItems.filter((item) => Number(item.stock || 0) <= 0).length;
+
+    return [
+      { label: "Number Of Items", value: String(totalItems), delta: "foods, juice, bites & snacks, soft drinks" },
+      { label: "Total Registered Resturents", value: String(restaurantSuppliers), delta: "restaurant and snack providers" },
+      { label: "Out Of Stocks", value: String(outOfStockItems), delta: "click to view list" },
+    ];
+  }, [biteItems, data.kpis, isBitesSection, sellersList]);
+
+  const outOfStockBitesItems = useMemo(
+    () => biteItems.filter((item) => Number(item.stock || 0) <= 0).sort((a, b) => a.productType.localeCompare(b.productType)),
+    [biteItems]
+  );
+
+  const recentMenuActivities = useMemo(() => {
+    const menuActivities = biteItems.slice(0, 20).map((item) => ({
+      id: `menu-${item._id}`,
+      title: `${item.name} ${new Date(item.createdAt).getTime() === new Date(item.updatedAt).getTime() ? "added" : "updated"}`,
+      detail: `${item.productType.toUpperCase()} · ${item.category} · Stock ${item.stock}`,
+      time: new Date(item.updatedAt || item.createdAt).getTime(),
+    }));
+
+    const supplierActivities = sellersList
+      .filter((seller) => ["restaurant", "snacks_provider"].includes(String(seller.sellerType || "")))
+      .slice(0, 20)
+      .map((seller) => ({
+        id: `supplier-${seller._id}`,
+        title: `${seller.name} ${seller.status === "pending" ? "registration requested" : "supplier account active"}`,
+        detail: `${seller.email} · ${seller.sellerType || "seller"}`,
+        time: new Date(seller.createdAt || Date.now()).getTime(),
+      }));
+
+    return [...menuActivities, ...supplierActivities].sort((a, b) => b.time - a.time).slice(0, 12);
+  }, [biteItems, sellersList]);
+
   const pendingReservationAlerts = useMemo(
     () => reservationItems.filter((item) => item.status === "pending").sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     [reservationItems]
@@ -670,6 +992,36 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               Add Time Slot
             </button>
           </div>
+        ) : isWinesSection ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => openChangePicker("wine")}
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+            >
+              Change Items
+            </button>
+            <button
+              onClick={() => openAddProductModal("wine")}
+              className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] transition-colors"
+            >
+              Add Wine
+            </button>
+          </div>
+        ) : isBitesSection ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => openChangePicker("bite")}
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+            >
+              Change Items
+            </button>
+            <button
+              onClick={() => openAddProductModal("bite")}
+              className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] transition-colors"
+            >
+              Add Item
+            </button>
+          </div>
         ) : !isUsersSection && (
           <button className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-sm font-bold hover:bg-[#c39b22] transition-colors w-fit">
             {data.actionLabel}
@@ -678,8 +1030,24 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {(isUsersSection ? usersKpis : isReservationsSection ? reservationKpis : sellersKpis).map((item) => (
-          <div key={item.label} className="bg-[#111] border border-[#333] rounded-xl p-5 hover:border-[#D4AF37]/50 transition-colors">
+        {(isUsersSection ? usersKpis : isReservationsSection ? reservationKpis : isWinesSection ? winesKpis : isBitesSection ? bitesKpis : sellersKpis).map((item) => (
+          <div
+            key={item.label}
+            onClick={() => {
+              if (isWinesSection && item.label === "Out Of Stock Categories") {
+                handleOutOfStockCardClick();
+              }
+              if (isBitesSection && item.label === "Out Of Stocks") {
+                handleOutOfStockBitesCardClick();
+              }
+            }}
+            className={`bg-[#111] border border-[#333] rounded-xl p-5 hover:border-[#D4AF37]/50 transition-colors ${
+              (isWinesSection && item.label === "Out Of Stock Categories") ||
+              (isBitesSection && item.label === "Out Of Stocks")
+                ? "cursor-pointer"
+                : ""
+            }`}
+          >
             <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">{item.label}</p>
             <p className="text-3xl font-serif text-white mb-2">{item.value}</p>
             <p className="text-xs text-[#D4AF37] font-semibold">{item.delta}</p>
@@ -825,7 +1193,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 <p className="text-sm text-gray-400">No registered sellers found.</p>
               )}
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {sellersList.map((seller) => {
                   const isExpanded = expandedSellerId === seller._id;
                   const sellerTypeName = {
@@ -835,17 +1203,27 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     beer_company: "Beer Company",
                     snacks_provider: "Snacks Provider",
                   }[seller.sellerType || ""] || "Seller";
+                  const initials = seller.name
+                    .split(" ")
+                    .map((part) => part[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase();
 
                   return (
-                    <div key={seller._id} className="rounded-xl border border-[#2a2a2a] bg-[#151515] p-4 space-y-3 hover:border-[#D4AF37]/35 transition-colors">
-                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                        <div>
-                          <p className="text-white text-xl font-semibold leading-tight">{seller.name}</p>
-                          <p className="text-sm text-gray-300 mt-1">{seller.email}</p>
-                          <p className="text-sm text-gray-400 mt-1">{seller.phone}</p>
-                          <p className="text-sm text-gray-400 mt-1">Joined: {seller.createdAt ? new Date(seller.createdAt).toLocaleString() : "N/A"}</p>
+                    <div key={seller._id} className="rounded-xl border border-[#2b2b2b] bg-gradient-to-b from-[#171717] to-[#131313] p-5 space-y-4 hover:border-[#D4AF37]/40 transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="flex items-start gap-3">
+                          <div className="h-11 w-11 rounded-lg border border-[#D4AF37]/35 bg-[#D4AF37]/10 text-[#D4AF37] flex items-center justify-center text-sm font-bold tracking-wide">
+                            {initials || "SL"}
+                          </div>
+                          <div>
+                            <p className="text-white text-lg font-semibold leading-tight">{seller.name}</p>
+                            <p className="text-xs uppercase tracking-[0.16em] text-[#D4AF37] mt-1">Company Profile</p>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap lg:justify-end lg:ml-auto">
+
+                        <div className="flex items-center gap-2 flex-wrap lg:justify-end">
                           <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-[#D4AF37] border-[#D4AF37]/30 bg-[#D4AF37]/10">
                             {sellerTypeName}
                           </span>
@@ -860,43 +1238,57 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                           >
                             {seller.status}
                           </span>
-                          <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-yellow-300 border-yellow-400/30 bg-yellow-500/10">
-                            Rating: {seller.rating.toFixed(1)} / 5
-                          </span>
-
-                          {seller.status === "pending" && (
-                            <button
-                              onClick={() => void handleApproveSeller(seller as unknown as PendingSeller)}
-                              disabled={isApprovingSellerId === seller._id}
-                              className="rounded-md border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 transition-colors disabled:opacity-60"
-                            >
-                              {isApprovingSellerId === seller._id ? "Approving..." : "Approve"}
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => void handleBlockSeller(seller)}
-                            disabled={isBlockingSellerId === seller._id}
-                            className="rounded-md border border-red-400/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-60"
-                          >
-                            {isBlockingSellerId === seller._id ? "Blocking..." : "Block"}
-                          </button>
-
-                          <button
-                            onClick={() => void handleDeleteSeller(seller)}
-                            disabled={isDeletingSellerId === seller._id}
-                            className="rounded-md border border-red-400/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-60"
-                          >
-                            {isDeletingSellerId === seller._id ? "Deleting..." : "Delete"}
-                          </button>
-
-                          <button
-                            onClick={() => setExpandedSellerId(isExpanded ? null : seller._id)}
-                            className="rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-4 py-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors lg:ml-2"
-                          >
-                            {isExpanded ? "Hide Details" : "View Details"}
-                          </button>
                         </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-lg border border-[#242424] bg-[#111]/70 p-3">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wider text-gray-500">Business Email</p>
+                          <p className="text-sm text-gray-200 mt-1 break-all">{seller.email || "Not provided"}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wider text-gray-500">Contact Number</p>
+                          <p className="text-sm text-gray-200 mt-1">{seller.phone || "Not provided"}</p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <p className="text-[10px] uppercase tracking-wider text-gray-500">Registered On</p>
+                          <p className="text-sm text-gray-300 mt-1">{seller.createdAt ? new Date(seller.createdAt).toLocaleString() : "N/A"}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-[#242424]">
+                        {seller.status === "pending" && (
+                          <button
+                            onClick={() => void handleApproveSeller(seller as unknown as PendingSeller)}
+                            disabled={isApprovingSellerId === seller._id}
+                            className="rounded-md border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 transition-colors disabled:opacity-60"
+                          >
+                            {isApprovingSellerId === seller._id ? "Approving..." : "Approve"}
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => void handleBlockSeller(seller)}
+                          disabled={isBlockingSellerId === seller._id}
+                          className="rounded-md border border-red-400/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-60"
+                        >
+                          {isBlockingSellerId === seller._id ? "Blocking..." : "Block"}
+                        </button>
+
+                        <button
+                          onClick={() => void handleDeleteSeller(seller)}
+                          disabled={isDeletingSellerId === seller._id}
+                          className="rounded-md border border-red-400/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-60"
+                        >
+                          {isDeletingSellerId === seller._id ? "Deleting..." : "Delete"}
+                        </button>
+
+                        <button
+                          onClick={() => setExpandedSellerId(isExpanded ? null : seller._id)}
+                          className="rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-4 py-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors lg:ml-auto"
+                        >
+                          {isExpanded ? "Hide Details" : "View Details"}
+                        </button>
                       </div>
 
                       {isExpanded && (
@@ -956,6 +1348,208 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      ) : isWinesSection ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+            <div className="xl:col-span-3 bg-[#111] border border-[#333] rounded-xl p-6">
+              <div className="flex items-center justify-between gap-3 mb-5">
+                <h2 className="text-white text-lg font-bold">Recent Activities</h2>
+                <span className="text-xs text-gray-400">Real-time supplier and liquor updates</span>
+              </div>
+
+              <div
+                className="max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+              >
+                {isLoadingWines && recentLiquorActivities.length === 0 ? (
+                  <p className="text-sm text-gray-400">Loading activity stream...</p>
+                ) : recentLiquorActivities.length === 0 ? (
+                  <p className="text-sm text-gray-400">No recent activities found.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {recentLiquorActivities.map((activity) => (
+                      <div key={activity.id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
+                        <p className="text-sm text-white font-semibold">{activity.title}</p>
+                        <p className="text-xs text-gray-400 mt-1">{activity.detail}</p>
+                        <p className="text-xs text-[#D4AF37] mt-1">{new Date(activity.time).toLocaleString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="xl:col-span-2 bg-[#111] border border-[#333] rounded-xl p-6">
+              <div className="flex items-center justify-between gap-2 mb-5">
+                <h2 className="text-white text-lg font-bold">Liquour Catalog</h2>
+                <span className="text-xs text-gray-400">DB synced</span>
+              </div>
+              <div
+                className="space-y-3 max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+              >
+                {isLoadingWines && wineItems.length === 0 ? (
+                  <p className="text-sm text-gray-400">Loading catalog...</p>
+                ) : wineItems.length === 0 ? (
+                  <p className="text-sm text-gray-400">No liquor items found in catalog.</p>
+                ) : (
+                  wineItems.slice(0, 40).map((item) => (
+                    <div key={item._id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm text-white font-semibold">{item.name}</p>
+                          <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
+                        </div>
+                        <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border ${Number(item.stock || 0) <= 0 ? "text-red-300 border-red-400/30 bg-red-500/10" : "text-emerald-300 border-emerald-400/30 bg-emerald-500/10"}`}>
+                          {Number(item.stock || 0) <= 0 ? "Out" : `Stock ${item.stock}`}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#D4AF37] mt-2">LKR {Number(item.price || 0).toFixed(2)} {item.brand ? `· ${item.brand}` : ""}</p>
+                      <button
+                        onClick={() => openEditProductModal("wine", item)}
+                        className="mt-2 rounded-md border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3 py-1.5 text-[11px] font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                      >
+                        Edit Item
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div ref={outOfStockSectionRef} className="bg-[#111] border border-[#333] rounded-xl p-6">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <h2 className="text-white text-lg font-bold">Out Of Stock Items</h2>
+              <button
+                onClick={() => setShowOutOfStockList((prev) => !prev)}
+                className="rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-1.5 text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              >
+                {showOutOfStockList ? "Hide List" : "Show List"}
+              </button>
+            </div>
+
+            {showOutOfStockList ? (
+              outOfStockLiquors.length === 0 ? (
+                <p className="text-sm text-emerald-300">No out-of-stock liquor items right now.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                  {outOfStockLiquors.map((item) => (
+                    <div key={item._id} className="rounded-lg border border-red-400/30 bg-red-500/10 p-3">
+                      <p className="text-sm text-white font-semibold">{item.name}</p>
+                      <p className="text-xs text-red-200 mt-1 uppercase">{item.productType} · {item.category}</p>
+                      <p className="text-xs text-gray-300 mt-1">Brand: {item.brand || "N/A"}</p>
+                      <p className="text-xs text-gray-300 mt-1">Last update: {new Date(item.updatedAt || item.createdAt).toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              <p className="text-xs text-gray-400">Click Show List or click the Out Of Stock Categories KPI card.</p>
+            )}
+          </div>
+        </div>
+      ) : isBitesSection ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+            <div className="xl:col-span-3 bg-[#111] border border-[#333] rounded-xl p-6">
+              <div className="flex items-center justify-between gap-3 mb-5">
+                <h2 className="text-white text-lg font-bold">Recent Activities</h2>
+                <span className="text-xs text-gray-400">Real-time restaurant and menu updates</span>
+              </div>
+
+              <div
+                className="max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+              >
+                {isLoadingBites && recentMenuActivities.length === 0 ? (
+                  <p className="text-sm text-gray-400">Loading activity stream...</p>
+                ) : recentMenuActivities.length === 0 ? (
+                  <p className="text-sm text-gray-400">No recent activities found.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {recentMenuActivities.map((activity) => (
+                      <div key={activity.id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
+                        <p className="text-sm text-white font-semibold">{activity.title}</p>
+                        <p className="text-xs text-gray-400 mt-1">{activity.detail}</p>
+                        <p className="text-xs text-[#D4AF37] mt-1">{new Date(activity.time).toLocaleString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="xl:col-span-2 bg-[#111] border border-[#333] rounded-xl p-6">
+              <div className="flex items-center justify-between gap-2 mb-5">
+                <h2 className="text-white text-lg font-bold">Menu Catelog</h2>
+                <span className="text-xs text-gray-400">DB synced</span>
+              </div>
+              <div
+                className="space-y-3 max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+              >
+                {isLoadingBites && biteItems.length === 0 ? (
+                  <p className="text-sm text-gray-400">Loading menu catalog...</p>
+                ) : biteItems.length === 0 ? (
+                  <p className="text-sm text-gray-400">No menu items found.</p>
+                ) : (
+                  biteItems.slice(0, 40).map((item) => (
+                    <div key={item._id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm text-white font-semibold">{item.name}</p>
+                          <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
+                        </div>
+                        <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border ${Number(item.stock || 0) <= 0 ? "text-red-300 border-red-400/30 bg-red-500/10" : "text-emerald-300 border-emerald-400/30 bg-emerald-500/10"}`}>
+                          {Number(item.stock || 0) <= 0 ? "Out" : `Stock ${item.stock}`}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#D4AF37] mt-2">LKR {Number(item.price || 0).toFixed(2)} {item.brand ? `· ${item.brand}` : ""}</p>
+                      <button
+                        onClick={() => openEditProductModal("bite", item)}
+                        className="mt-2 rounded-md border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3 py-1.5 text-[11px] font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                      >
+                        Edit Item
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div ref={outOfStockBitesSectionRef} className="bg-[#111] border border-[#333] rounded-xl p-6">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <h2 className="text-white text-lg font-bold">Out Of Stock Items</h2>
+              <button
+                onClick={() => setShowOutOfStockBitesList((prev) => !prev)}
+                className="rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-1.5 text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              >
+                {showOutOfStockBitesList ? "Hide List" : "Show List"}
+              </button>
+            </div>
+
+            {showOutOfStockBitesList ? (
+              outOfStockBitesItems.length === 0 ? (
+                <p className="text-sm text-emerald-300">No out-of-stock menu items right now.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                  {outOfStockBitesItems.map((item) => (
+                    <div key={item._id} className="rounded-lg border border-red-400/30 bg-red-500/10 p-3">
+                      <p className="text-sm text-white font-semibold">{item.name}</p>
+                      <p className="text-xs text-red-200 mt-1 uppercase">{item.productType} · {item.category}</p>
+                      <p className="text-xs text-gray-300 mt-1">Brand: {item.brand || "N/A"}</p>
+                      <p className="text-xs text-gray-300 mt-1">Last update: {new Date(item.updatedAt || item.createdAt).toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              <p className="text-xs text-gray-400">Click Show List or click the Out Of Stocks KPI card.</p>
+            )}
           </div>
         </div>
       ) : isReservationsSection ? (
@@ -1181,6 +1775,60 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
           </div>
         </div>
       )}
+
+      {isChangePickerOpen && (
+        <div className="fixed inset-0 z-[85] bg-black/65 backdrop-blur-[1px] flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl rounded-2xl border border-[#363636] bg-[#121212] p-5 md:p-6">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-white">Change Items</h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Select a {changePickerMode === "wine" ? "liquor" : "menu"} item to update details.
+                </p>
+              </div>
+              <button
+                onClick={closeChangePicker}
+                className="rounded-md border border-[#3c3c3c] px-3 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]">
+              {(changePickerMode === "wine" ? wineItems : biteItems).length === 0 ? (
+                <p className="text-sm text-gray-400">
+                  No {changePickerMode === "wine" ? "liquor" : "menu"} items found.
+                </p>
+              ) : (
+                (changePickerMode === "wine" ? wineItems : biteItems).map((item) => (
+                  <div key={item._id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm text-white font-semibold">{item.name}</p>
+                      <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
+                      <p className="text-xs text-[#D4AF37] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {item.stock}</p>
+                    </div>
+                    <button
+                      onClick={() => handlePickItemForEdit(item)}
+                      className="rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-3 py-1.5 text-xs font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ProductEditorModal
+        isOpen={isProductModalOpen}
+        mode={productModalMode}
+        item={productModalItem}
+        isSaving={isSavingProduct}
+        onClose={closeProductModal}
+        onSubmit={handleSaveProduct}
+      />
     </div>
   );
 };
