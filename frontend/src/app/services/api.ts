@@ -41,10 +41,13 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   });
 
   const contentType = response.headers.get("content-type") || "";
-  const payload = contentType.includes("application/json") ? await response.json() : null;
+  const isJson = contentType.includes("application/json");
+  const payload = isJson ? await response.json() : null;
+  const textPayload = !isJson ? (await response.text()).trim() : "";
 
   if (!response.ok) {
-    throw new Error(payload?.message || payload?.error || "Request failed");
+    const fallbackMessage = `Request failed (${response.status})`;
+    throw new Error(payload?.message || payload?.error || textPayload || fallbackMessage);
   }
 
   return payload as T;
