@@ -85,4 +85,42 @@ const deleteCustomer = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { listUsers, updateUser, blockUser, approveSeller, deleteCustomer };
+const listSellers = asyncHandler(async (req, res) => {
+  const sellers = await User.find({ role: "seller" }).select("-password").sort({ createdAt: -1 });
+
+  const stats = {
+    totalSellers: sellers.length,
+    activeSellers: sellers.filter((s) => s.status === "active").length,
+    pendingSellers: sellers.filter((s) => s.status === "pending").length,
+    blockedSellers: sellers.filter((s) => s.status === "blocked").length,
+  };
+
+  const avgRating = sellers.length
+    ? (sellers.reduce((sum, s) => sum + Number(s.rating || 0), 0) / sellers.length).toFixed(2)
+    : 0;
+
+  res.json({ success: true, sellers, stats: { ...stats, averageRating: avgRating } });
+});
+
+const blockSeller = asyncHandler(async (req, res) => {
+  const seller = await User.findById(req.params.id);
+  if (!seller) throw new ApiError(404, "Seller not found");
+  if (seller.role !== "seller") throw new ApiError(400, "User is not a seller");
+
+  seller.status = "blocked";
+  await seller.save();
+
+  res.json({ success: true, message: "Seller blocked successfully", seller });
+});
+
+const deleteSeller = asyncHandler(async (req, res) => {
+  const seller = await User.findById(req.params.id).select("name email role");
+  if (!seller) throw new ApiError(404, "Seller not found");
+  if (seller.role !== "seller") throw new ApiError(400, "Only seller accounts can be deleted");
+
+  await User.findByIdAndDelete(seller._id);
+
+  res.json({ success: true, message: `Seller ${seller.name} deleted successfully` });
+});
+
+module.exports = { listUsers, updateUser, blockUser, approveSeller, deleteCustomer, listSellers, blockSeller, deleteSeller };

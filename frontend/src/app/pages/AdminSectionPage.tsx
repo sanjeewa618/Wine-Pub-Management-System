@@ -25,6 +25,20 @@ interface PendingSeller {
   createdAt?: string;
 }
 
+interface SellerUser {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  status: string;
+  sellerType?: string;
+  rating: number;
+  totalRatings: number;
+  businessDescription: string;
+  createdAt?: string;
+}
+
 interface CustomerUser {
   _id: string;
   name: string;
@@ -256,6 +270,11 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
   const [pendingSellers, setPendingSellers] = useState<PendingSeller[]>([]);
   const [isLoadingSellers, setIsLoadingSellers] = useState(false);
   const [isApprovingSellerId, setIsApprovingSellerId] = useState<string | null>(null);
+  const [sellersList, setSellersList] = useState<SellerUser[]>([]);
+  const [sellerStats, setSellerStats] = useState<{ totalSellers: number; activeSellers: number; pendingSellers: number; blockedSellers: number; averageRating: number } | null>(null);
+  const [isBlockingSellerId, setIsBlockingSellerId] = useState<string | null>(null);
+  const [isDeletingSellerId, setIsDeletingSellerId] = useState<string | null>(null);
+  const [expandedSellerId, setExpandedSellerId] = useState<string | null>(null);
   const [customerUsers, setCustomerUsers] = useState<CustomerUser[]>([]);
   const [ordersByUser, setOrdersByUser] = useState<Record<string, AdminOrder[]>>({});
   const [reservationsByUser, setReservationsByUser] = useState<Record<string, AdminReservation[]>>({});
@@ -291,12 +310,33 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     }
   };
 
+  const loadSellersSectionData = async () => {
+    setIsLoadingSellers(true);
+    setFeedbackMessage("");
+
+    try {
+      const [sellersResponse, queueResponse] = await Promise.all([
+        apiRequest<{ sellers?: SellerUser[]; stats?: any }>("/users/sellers/list"),
+        apiRequest<{ queues?: { pendingSellers?: PendingSeller[] } }>("/admin/queues"),
+      ]);
+
+      setSellersList(sellersResponse.sellers || []);
+      setSellerStats(sellersResponse.stats || null);
+      setPendingSellers(queueResponse.queues?.pendingSellers ?? []);
+    } catch (error) {
+      setFeedbackType("error");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to load sellers section data");
+    } finally {
+      setIsLoadingSellers(false);
+    }
+  };
+
   useEffect(() => {
     if (!isSellersSection) {
       return;
     }
 
-    void loadPendingSellers();
+    void loadSellersSectionData();
   }, [isSellersSection]);
 
   const loadUsersSectionData = async () => {
@@ -487,11 +527,52 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
       setPendingSellers((prev) => prev.filter((item) => item._id !== seller._id));
       setFeedbackType("success");
       setFeedbackMessage(response.message || `${seller.name} approved successfully`);
+      await loadSellersSectionData();
     } catch (error) {
       setFeedbackType("error");
       setFeedbackMessage(error instanceof Error ? error.message : "Failed to approve seller");
     } finally {
       setIsApprovingSellerId(null);
+    }
+  };
+
+  const handleBlockSeller = async (seller: SellerUser) => {
+    setIsBlockingSellerId(seller._id);
+    setFeedbackMessage("");
+
+    try {
+      const response = await apiRequest<{ message?: string }>(`/users/${seller._id}/block-seller`, {
+        method: "PUT",
+      });
+
+      setFeedbackType("success");
+      setFeedbackMessage(response.message || `${seller.name} blocked successfully`);
+      await loadSellersSectionData();
+    } catch (error) {
+      setFeedbackType("error");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to block seller");
+    } finally {
+      setIsBlockingSellerId(null);
+    }
+  };
+
+  const handleDeleteSeller = async (seller: SellerUser) => {
+    setIsDeletingSellerId(seller._id);
+    setFeedbackMessage("");
+
+    try {
+      const response = await apiRequest<{ message?: string }>(`/users/${seller._id}/seller`, {
+        method: "DELETE",
+      });
+
+      setFeedbackType("success");
+      setFeedbackMessage(response.message || `${seller.name} deleted successfully`);
+      await loadSellersSectionData();
+    } catch (error) {
+      setFeedbackType("error");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to delete seller");
+    } finally {
+      setIsDeletingSellerId(null);
     }
   };
 
@@ -501,11 +582,11 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     }
 
     return [
-      { label: "Pending Approvals", value: String(pendingSellers.length), delta: pendingSellers.length > 0 ? "needs review" : "up to date" },
-      { label: "Ready To Approve", value: String(pendingSellers.filter((seller) => seller.status === "pending").length), delta: "seller requests" },
-      { label: "Email Notifications", value: "Enabled", delta: "on approval" },
+      { label: "Total Registered Sellers", value: String(sellerStats?.totalSellers || 0), delta: `${sellerStats?.activeSellers || 0} active` },
+      { label: "Pending Approvals", value: String(sellerStats?.pendingSellers || 0), delta: sellerStats?.pendingSellers ? "needs review" : "all approved" },
+      { label: "Blocked Sellers", value: String(sellerStats?.blockedSellers || 0), delta: sellerStats?.blockedSellers ? "restricted" : "none" },
     ];
-  }, [data.kpis, isSellersSection, pendingSellers]);
+  }, [data.kpis, isSellersSection, sellerStats]);
 
   const usersKpis = useMemo(() => {
     if (!isUsersSection) {
@@ -720,6 +801,161 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 </div>
               );
             })}
+          </div>
+        </div>
+      ) : isSellersSection ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+            <div className="xl:col-span-3 bg-[#111] border border-[#333] rounded-xl p-6">
+              <div className="flex items-center justify-between gap-3 mb-5">
+                <h2 className="text-white text-lg font-bold">Registered Sellers</h2>
+                <button
+                  onClick={() => void loadSellersSectionData()}
+                  disabled={isLoadingSellers}
+                  className="rounded-lg border border-[#D4AF37]/40 bg-[#1a1a1a] px-4 py-2 text-xs font-semibold text-[#D4AF37] hover:text-black hover:bg-[#D4AF37] transition-colors disabled:opacity-60"
+                >
+                  {isLoadingSellers ? "Refreshing..." : "Refresh Data"}
+                </button>
+              </div>
+
+              {isLoadingSellers && sellersList.length === 0 && (
+                <p className="text-sm text-gray-400">Loading sellers...</p>
+              )}
+              {!isLoadingSellers && sellersList.length === 0 && (
+                <p className="text-sm text-gray-400">No registered sellers found.</p>
+              )}
+
+              <div className="space-y-3">
+                {sellersList.map((seller) => {
+                  const isExpanded = expandedSellerId === seller._id;
+                  const sellerTypeName = {
+                    liquor_supplier: "Liquor Supplier",
+                    restaurant: "Restaurant",
+                    wine_company: "Wine Company",
+                    beer_company: "Beer Company",
+                    snacks_provider: "Snacks Provider",
+                  }[seller.sellerType || ""] || "Seller";
+
+                  return (
+                    <div key={seller._id} className="rounded-xl border border-[#2a2a2a] bg-[#151515] p-4 space-y-3 hover:border-[#D4AF37]/35 transition-colors">
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                        <div>
+                          <p className="text-white text-xl font-semibold leading-tight">{seller.name}</p>
+                          <p className="text-sm text-gray-300 mt-1">{seller.email}</p>
+                          <p className="text-sm text-gray-400 mt-1">{seller.phone}</p>
+                          <p className="text-sm text-gray-400 mt-1">Joined: {seller.createdAt ? new Date(seller.createdAt).toLocaleString() : "N/A"}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap lg:justify-end lg:ml-auto">
+                          <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-[#D4AF37] border-[#D4AF37]/30 bg-[#D4AF37]/10">
+                            {sellerTypeName}
+                          </span>
+                          <span
+                            className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border ${
+                              seller.status === "blocked"
+                                ? "text-red-300 border-red-400/30 bg-red-500/10"
+                                : seller.status === "pending"
+                                ? "text-orange-300 border-orange-400/30 bg-orange-500/10"
+                                : "text-emerald-300 border-emerald-400/30 bg-emerald-500/10"
+                            }`}
+                          >
+                            {seller.status}
+                          </span>
+                          <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-yellow-300 border-yellow-400/30 bg-yellow-500/10">
+                            Rating: {seller.rating.toFixed(1)} / 5
+                          </span>
+
+                          {seller.status === "pending" && (
+                            <button
+                              onClick={() => void handleApproveSeller(seller as unknown as PendingSeller)}
+                              disabled={isApprovingSellerId === seller._id}
+                              className="rounded-md border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 transition-colors disabled:opacity-60"
+                            >
+                              {isApprovingSellerId === seller._id ? "Approving..." : "Approve"}
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => void handleBlockSeller(seller)}
+                            disabled={isBlockingSellerId === seller._id}
+                            className="rounded-md border border-red-400/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-60"
+                          >
+                            {isBlockingSellerId === seller._id ? "Blocking..." : "Block"}
+                          </button>
+
+                          <button
+                            onClick={() => void handleDeleteSeller(seller)}
+                            disabled={isDeletingSellerId === seller._id}
+                            className="rounded-md border border-red-400/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-60"
+                          >
+                            {isDeletingSellerId === seller._id ? "Deleting..." : "Delete"}
+                          </button>
+
+                          <button
+                            onClick={() => setExpandedSellerId(isExpanded ? null : seller._id)}
+                            className="rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-4 py-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors lg:ml-2"
+                          >
+                            {isExpanded ? "Hide Details" : "View Details"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="border-t border-[#2a2a2a] pt-3">
+                          <div className="rounded-lg border border-[#2a2a2a] bg-[#111] p-3">
+                            <h3 className="text-sm font-semibold text-white mb-2">Business Information</h3>
+                            <p className="text-xs text-gray-300">{seller.businessDescription || "No description provided"}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="xl:col-span-2 bg-[#111] border border-[#333] rounded-xl p-6">
+              <h2 className="text-white text-lg font-bold mb-5">Seller Approval Requests</h2>
+              <div className="space-y-3">
+                {isLoadingSellers && pendingSellers.length === 0 && (
+                  <p className="text-sm text-gray-400">Loading approval requests...</p>
+                )}
+                {!isLoadingSellers && pendingSellers.length === 0 && (
+                  <p className="text-sm text-emerald-300">No pending seller approvals right now.</p>
+                )}
+                {pendingSellers.map((seller) => (
+                  <div key={seller._id} className="rounded-lg border border-orange-400/40 bg-orange-500/10 p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-white">{seller.name}</p>
+                        <p className="text-xs text-gray-300 mt-1">{seller.email}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Registered: {seller.createdAt ? new Date(seller.createdAt).toLocaleString() : "N/A"}
+                        </p>
+                      </div>
+                      <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-orange-300 border-orange-400/40 bg-orange-500/20 whitespace-nowrap">
+                        Pending
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2">
+                      <button
+                        onClick={() => void handleApproveSeller(seller)}
+                        disabled={isApprovingSellerId === seller._id}
+                        className="flex-1 rounded-md border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 transition-colors disabled:opacity-60"
+                      >
+                        {isApprovingSellerId === seller._id ? "Approving..." : "✓ Approve"}
+                      </button>
+                      <button
+                        onClick={() => void handleBlockSeller(seller as unknown as SellerUser)}
+                        disabled={isBlockingSellerId === seller._id}
+                        className="flex-1 rounded-md border border-red-400/35 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-60"
+                      >
+                        {isBlockingSellerId === seller._id ? "Canceling..." : "✕ Cancel"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       ) : isReservationsSection ? (

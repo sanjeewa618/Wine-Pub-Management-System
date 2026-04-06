@@ -17,6 +17,14 @@ const userSchema = new mongoose.Schema(
     avatar: { type: String, default: "" },
     phone: { type: String, default: "" },
     status: { type: String, enum: ["active", "pending", "blocked"], default: "active" },
+    sellerType: {
+      type: String,
+      enum: ["liquor_supplier", "restaurant", "wine_company", "beer_company", "snacks_provider"],
+      default: null,
+    },
+    rating: { type: Number, min: 0, max: 5, default: 0 },
+    totalRatings: { type: Number, default: 0 },
+    businessDescription: { type: String, default: "" },
     refreshTokens: [{ type: String }],
   },
   { timestamps: true }
