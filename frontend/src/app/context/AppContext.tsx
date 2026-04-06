@@ -9,6 +9,8 @@ interface User {
   email: string;
   role: Role;
   avatar?: string;
+  phone?: string;
+  status?: string;
 }
 
 interface Product {
@@ -51,6 +53,8 @@ interface AppContextType {
   updateQuantity: (productId: string, quantity: number, selectedSize?: string) => Promise<void>;
   checkout: (payload: { orderType: "pickup" | "delivery"; deliveryAddress?: string; paymentMethod: string; pickupTableNumber?: string }) => Promise<unknown>;
   createReservation: (payload: { date: string; time: string; guests: string; tableNumbers: string[]; name: string; email: string; phone: string; requests: string }) => Promise<unknown>;
+  updateProfile: (payload: { name: string; email: string; phone?: string; avatar?: string }) => Promise<User>;
+  changePassword: (payload: { currentPassword: string; newPassword: string }) => Promise<void>;
   toggleTheme: () => void;
   products: Product[];
 }
@@ -568,6 +572,36 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const updateProfile = async (payload: { name: string; email: string; phone?: string; avatar?: string }) => {
+    if (!getApiToken()) {
+      throw new Error("Please sign in before updating profile");
+    }
+
+    const response = await apiRequest<{ user: any }>("/auth/me", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+
+    const user = mapUser(response.user);
+    setState((prev) => ({
+      ...prev,
+      user,
+    }));
+
+    return user;
+  };
+
+  const changePassword = async (payload: { currentPassword: string; newPassword: string }) => {
+    if (!getApiToken()) {
+      throw new Error("Please sign in before changing password");
+    }
+
+    await apiRequest<{ success: boolean; message?: string }>("/auth/change-password", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -581,6 +615,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         updateQuantity,
         checkout,
         createReservation,
+        updateProfile,
+        changePassword,
         toggleTheme,
         products,
       }}

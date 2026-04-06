@@ -149,7 +149,12 @@ const createReservation = asyncHandler(async (req, res) => {
 });
 
 const listReservations = asyncHandler(async (req, res) => {
-  const filter = req.user.role === "admin" ? {} : { userId: req.user._id };
+  const filter =
+    req.user.role === "admin"
+      ? {}
+      : {
+          $or: [{ userId: req.user._id }, { email: String(req.user.email || "").trim().toLowerCase() }],
+        };
   const reservations = await Reservation.find(filter).sort({ createdAt: -1 });
   res.json({ success: true, reservations });
 });

@@ -32,7 +32,7 @@ export const DashboardLayout = () => {
     switch (role) {
       case "admin":
         return [
-          { name: "Overview", path: "/admin", icon: LayoutDashboard },
+          { name: "Overview", path: "/admin", icon: LayoutDashboard, exact: true },
           { name: "Users", path: "/admin/users", icon: Users },
           { name: "Sellers", path: "/admin/sellers", icon: Store },
           { name: "Reservations", path: "/admin/reservations", icon: CalendarDays },
@@ -44,7 +44,7 @@ export const DashboardLayout = () => {
         ];
       case "seller":
         return [
-          { name: "Overview", path: "/seller", icon: LayoutDashboard },
+          { name: "Overview", path: "/seller", icon: LayoutDashboard, exact: true },
           { name: "My Wines", path: "/seller/wines", icon: Wine },
           { name: "Orders", path: "/seller/orders", icon: ShoppingCart },
           { name: "Analytics", path: "/seller/analytics", icon: BarChart3 },
@@ -52,7 +52,7 @@ export const DashboardLayout = () => {
         ];
       case "customer":
         return [
-          { name: "My Profile", path: "/customer", icon: LayoutDashboard },
+          { name: "My Profile", path: "/customer", icon: LayoutDashboard, exact: true },
           { name: "My Reservations", path: "/customer/reservations", icon: CalendarDays },
           { name: "Order History", path: "/customer/orders", icon: ShoppingCart },
           { name: "Settings", path: "/customer/settings", icon: Settings },
@@ -102,7 +102,10 @@ export const DashboardLayout = () => {
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {links.map((link) => {
-            const isActive = location.pathname === link.path;
+            const isActive =
+              link.exact
+                ? location.pathname === link.path
+                : location.pathname === link.path || location.pathname.startsWith(`${link.path}/`);
             const Icon = link.icon;
             return (
               <Link

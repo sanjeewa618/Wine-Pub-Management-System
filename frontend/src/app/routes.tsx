@@ -17,6 +17,9 @@ import { AdminDashboard } from "./pages/AdminDashboard";
 import { AdminSectionPage } from "./pages/AdminSectionPage";
 import { SellerDashboard } from "./pages/SellerDashboard";
 import { CustomerDashboard } from "./pages/CustomerDashboard";
+import { CustomerReservationsPage } from "./pages/CustomerReservationsPage";
+import { CustomerOrderHistoryPage } from "./pages/CustomerOrderHistoryPage";
+import { CustomerSettingsPage } from "./pages/CustomerSettingsPage";
 
 // Root component that provides the context
 const Root = () => {
@@ -170,7 +173,10 @@ export const router = createBrowserRouter([
         ),
         children: [
           { index: true, element: <CustomerDashboard /> },
-          { path: "*", element: <div className="flex items-center justify-center h-full text-gray-400">Page Under Construction</div> }
+          { path: "reservations", element: <CustomerReservationsPage /> },
+          { path: "orders", element: <CustomerOrderHistoryPage /> },
+          { path: "settings", element: <CustomerSettingsPage /> },
+          { path: "*", element: <div className="flex items-center justify-center h-full text-gray-400">Page Not Found</div> }
         ]
       }
     ]

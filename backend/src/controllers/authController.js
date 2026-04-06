@@ -145,6 +145,86 @@ const getMe = asyncHandler(async (req, res) => {
   res.json({ success: true, user: sanitizeUser(req.user) });
 });
 
+const updateMe = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const nextName = String(req.body.name ?? user.name).trim();
+  const nextEmail = String(req.body.email ?? user.email).trim().toLowerCase();
+  const nextPhone = String(req.body.phone ?? user.phone ?? "").trim();
+  const nextAvatar = String(req.body.avatar ?? user.avatar ?? "").trim();
+
+  if (!nextName) {
+    throw new ApiError(400, "Name is required");
+  }
+
+  if (!NAME_REGEX.test(nextName)) {
+    throw new ApiError(400, "Full name should contain only letters and spaces (2-60 characters)");
+  }
+
+  if (!EMAIL_REGEX.test(nextEmail)) {
+    throw new ApiError(400, "Invalid email format");
+  }
+
+  if (nextPhone.length > 30) {
+    throw new ApiError(400, "Phone number is too long");
+  }
+
+  if (nextAvatar && !/^https?:\/\//i.test(nextAvatar)) {
+    throw new ApiError(400, "Avatar must be a valid http/https URL");
+  }
+
+  if (nextEmail !== user.email) {
+    const existing = await User.findOne({ email: nextEmail, _id: { $ne: user._id } });
+    if (existing) {
+      throw new ApiError(409, "Email already exists");
+    }
+  }
+
+  user.name = nextName;
+  user.email = nextEmail;
+  user.phone = nextPhone;
+  user.avatar = nextAvatar;
+  await user.save();
+
+  res.json({ success: true, user: sanitizeUser(user) });
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+  const currentPassword = String(req.body.currentPassword ?? "");
+  const newPassword = String(req.body.newPassword ?? "");
+
+  if (!currentPassword || !newPassword) {
+    throw new ApiError(400, "Current password and new password are required");
+  }
+
+  if (!PASSWORD_REGEX.test(newPassword)) {
+    throw new ApiError(400, "Password must be 8-16 characters and include uppercase, number, and special character");
+  }
+
+  const user = await User.findById(req.user._id).select("+password");
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const isMatch = await user.matchPassword(currentPassword);
+  if (!isMatch) {
+    throw new ApiError(401, "Current password is incorrect");
+  }
+
+  const isSamePassword = await user.matchPassword(newPassword);
+  if (isSamePassword) {
+    throw new ApiError(400, "New password must be different from current password");
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.json({ success: true, message: "Password updated successfully" });
+});
+
 const logout = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Logged out" });
 });
@@ -158,4 +238,4 @@ const refreshToken = asyncHandler(async (req, res) => {
   res.json({ success: true, token });
 });
 
-module.exports = { register, login, getMe, logout, refreshToken };
+module.exports = { register, login, getMe, updateMe, changePassword, logout, refreshToken };
