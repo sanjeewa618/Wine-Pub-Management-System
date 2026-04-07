@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema(
     rating: { type: Number, min: 0, max: 5, default: 0 },
     totalRatings: { type: Number, default: 0 },
     businessDescription: { type: String, default: "" },
+    twoFactorEnabled: { type: Boolean, default: false },
     refreshTokens: [{ type: String }],
   },
   { timestamps: true }

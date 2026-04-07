@@ -55,10 +55,7 @@ export const CustomerDashboard = () => {
         setReservations(sortedReservations);
         setOrders(sortedOrders);
       } catch {
-        if (isActive) {
-          setReservations([]);
-          setOrders([]);
-        }
+        // Keep last successful dashboard snapshot if one poll fails.
       }
     };
 

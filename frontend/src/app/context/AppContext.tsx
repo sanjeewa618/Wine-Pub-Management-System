@@ -11,13 +11,16 @@ interface User {
   avatar?: string;
   phone?: string;
   status?: string;
+  twoFactorEnabled?: boolean;
 }
 
 interface Product {
   id: string;
   name: string;
+  productType?: string;
   type: "wine" | "bite";
   category: string;
+  subCategory?: string;
   price: number;
   image: string;
   rating: number;
@@ -45,16 +48,18 @@ interface AppState {
 interface AppContextType {
   state: AppState;
   isAuthResolved: boolean;
+  sessionRefreshKey: number;
   login: (email: string, password: string) => Promise<User>;
   register: (payload: { name: string; email: string; password: string; role?: Role }) => Promise<{ user: User; requiresApproval?: boolean; message?: string }>;
   logout: () => Promise<void>;
-  addToCart: (product: Product, size?: string) => Promise<void>;
+  addToCart: (product: Product, size?: string, quantity?: number) => Promise<void>;
   removeFromCart: (productId: string, selectedSize?: string) => Promise<void>;
   updateQuantity: (productId: string, quantity: number, selectedSize?: string) => Promise<void>;
   checkout: (payload: { orderType: "pickup" | "delivery"; deliveryAddress?: string; paymentMethod: string; pickupTableNumber?: string }) => Promise<unknown>;
   createReservation: (payload: { date: string; time: string; guests: string; tableNumbers: string[]; name: string; email: string; phone: string; requests: string }) => Promise<unknown>;
   updateProfile: (payload: { name: string; email: string; phone?: string; avatar?: string }) => Promise<User>;
   changePassword: (payload: { currentPassword: string; newPassword: string }) => Promise<void>;
+  toggleTwoFactor: (enabled: boolean) => Promise<User>;
   toggleTheme: () => void;
   products: Product[];
 }
@@ -243,6 +248,9 @@ function mapUser(user: any): User {
     email: user?.email ?? "",
     role: user?.role ?? "guest",
     avatar: user?.avatar,
+    phone: user?.phone,
+    status: user?.status,
+    twoFactorEnabled: Boolean(user?.twoFactorEnabled),
   };
 }
 
@@ -250,8 +258,10 @@ function mapProduct(product: any): Product {
   return {
     id: String(product?.id ?? product?._id ?? ""),
     name: product?.name ?? "Untitled",
+    productType: product?.productType ?? "",
     type: ["bite", "food", "beverage"].includes(product?.productType) ? "bite" : "wine",
     category: product?.category ?? "General",
+    subCategory: product?.subCategory ?? "",
     price: Number(product?.price ?? 0),
     image:
       product?.image ||
@@ -295,6 +305,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   });
   const [products, setProducts] = useState<Product[]>([]);
   const [isAuthResolved, setIsAuthResolved] = useState(false);
+  const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
 
   const fetchProducts = useCallback(async () => {
     const [winesResult, bitesResult] = await Promise.allSettled([
@@ -348,6 +359,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           user: mapUser(meResponse.user),
           cart: mapCartItems(cartResponse.cart?.items ?? []),
         }));
+        setSessionRefreshKey((prev) => prev + 1);
       } catch (error) {
         clearApiToken();
       } finally {
@@ -399,6 +411,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       ...prev,
       user,
     }));
+    setSessionRefreshKey((prev) => prev + 1);
 
     await refreshCart();
     return user;
@@ -437,10 +450,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         user: null,
         cart: [],
       }));
+      setSessionRefreshKey((prev) => prev + 1);
     }
   };
 
-  const addToCart = async (product: Product, size?: string) => {
+  const addToCart = async (product: Product, size?: string, quantity = 1) => {
     if (!getApiToken()) {
       setState((prev) => {
         const existing = prev.cart.find((item) => item.id === product.id && item.selectedSize === size);
@@ -450,7 +464,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             ...prev,
             cart: prev.cart.map((item) =>
               item.id === product.id && item.selectedSize === size
-                ? { ...item, quantity: item.quantity + 1 }
+                ? { ...item, quantity: item.quantity + Math.max(1, quantity) }
                 : item
             ),
           };
@@ -458,7 +472,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
         return {
           ...prev,
-          cart: [...prev.cart, { ...product, quantity: 1, selectedSize: size }],
+          cart: [...prev.cart, { ...product, quantity: Math.max(1, quantity), selectedSize: size }],
         };
       });
 
@@ -467,7 +481,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     const response = await apiRequest<{ cart: any }>("/cart/items", {
       method: "POST",
-      body: JSON.stringify({ productId: product.id, quantity: 1, selectedSize: size || "" }),
+      body: JSON.stringify({ productId: product.id, quantity: Math.max(1, quantity), selectedSize: size || "" }),
     });
 
     setState((prev) => ({
@@ -602,11 +616,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const toggleTwoFactor = async (enabled: boolean) => {
+    if (!getApiToken()) {
+      throw new Error("Please sign in before changing 2FA settings");
+    }
+
+    const response = await apiRequest<{ user: any }>("/auth/2fa", {
+      method: "PUT",
+      body: JSON.stringify({ enabled }),
+    });
+
+    const user = mapUser(response.user);
+    setState((prev) => ({
+      ...prev,
+      user,
+    }));
+
+    return user;
+  };
+
   return (
     <AppContext.Provider
       value={{
         state,
         isAuthResolved,
+        sessionRefreshKey,
         login,
         register,
         logout,
@@ -617,6 +651,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         createReservation,
         updateProfile,
         changePassword,
+        toggleTwoFactor,
         toggleTheme,
         products,
       }}

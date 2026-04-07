@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 export const DashboardLayout = () => {
-  const { state, logout } = useApp();
+  const { state, logout, sessionRefreshKey } = useApp();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -45,7 +45,7 @@ export const DashboardLayout = () => {
       case "seller":
         return [
           { name: "Overview", path: "/seller", icon: LayoutDashboard, exact: true },
-          { name: "My Wines", path: "/seller/wines", icon: Wine },
+          { name: "MyItems", path: "/seller/wines", icon: Wine },
           { name: "Orders", path: "/seller/orders", icon: ShoppingCart },
           { name: "Analytics", path: "/seller/analytics", icon: BarChart3 },
           { name: "Settings", path: "/seller/settings", icon: Settings },
@@ -145,7 +145,7 @@ export const DashboardLayout = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-br from-[#0a0a0a] to-[#1a1012]">
-          <Outlet />
+          <Outlet key={`${state.user.id}-${sessionRefreshKey}`} />
         </main>
       </div>
 

@@ -343,7 +343,7 @@ export const ProductEditorModal = ({ isOpen, mode, item, isSaving, onClose, onSu
               className="w-full rounded-md border border-[#333] bg-[#161616] px-3 py-2 text-sm text-white"
             >
               {isWine ? (
-                ["wine", "arrack", "whiskey", "whisky", "rum", "beer"].map((type) => (
+                ["wine", "arrack", "whiskey", "whisky", "rum", "vodka", "beer"].map((type) => (
                   <option key={type} value={type}>
                     {type}
                   </option>

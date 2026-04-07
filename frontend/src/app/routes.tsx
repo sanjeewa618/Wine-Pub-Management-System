@@ -16,6 +16,8 @@ import { OrderTrackingPage } from "./pages/OrderTrackingPage";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { AdminSectionPage } from "./pages/AdminSectionPage";
 import { SellerDashboard } from "./pages/SellerDashboard";
+import { SellerOrdersPage } from "./pages/SellerOrdersPage";
+import { SellerItemsPage } from "./pages/SellerItemsPage";
 import { CustomerDashboard } from "./pages/CustomerDashboard";
 import { CustomerReservationsPage } from "./pages/CustomerReservationsPage";
 import { CustomerOrderHistoryPage } from "./pages/CustomerOrderHistoryPage";
@@ -159,6 +161,8 @@ export const router = createBrowserRouter([
         ),
         children: [
           { index: true, element: <SellerDashboard /> },
+          { path: "wines", element: <SellerItemsPage /> },
+          { path: "orders", element: <SellerOrdersPage /> },
           { path: "*", element: <div className="flex items-center justify-center h-full text-gray-400">Page Under Construction</div> }
         ]
       },

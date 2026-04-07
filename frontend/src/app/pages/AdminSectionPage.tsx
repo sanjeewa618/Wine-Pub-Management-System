@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { apiRequest } from "../services/api";
 import { EditableProductItem, ProductEditorModal, ProductEditorMode } from "../components/ProductEditorModal";
+import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { downloadReceiptPdf } from "../utils/receiptPdf";
+import { useApp } from "../context/AppContext";
 
 type AdminSection =
   | "users"
@@ -51,11 +55,63 @@ interface CustomerUser {
 
 interface AdminOrder {
   _id: string;
-  userId: string;
+  userId:
+    | string
+    | {
+        _id: string;
+        name?: string;
+        email?: string;
+        role?: string;
+      };
+  items?: Array<{
+    name?: string;
+    quantity?: number;
+    productId?: {
+      _id?: string;
+      sellerId?: string | null;
+      name?: string;
+      productType?: string;
+    };
+  }>;
   total: number;
-  status: string;
+  status: "pending" | "confirmed" | "preparing" | "ready" | "delivered" | "cancelled";
   createdAt: string;
   orderType: string;
+  paymentMethod?: "card" | "cash" | "other";
+  paymentStatus?: "unpaid" | "paid";
+  trackingNumber?: string;
+}
+
+interface AdminPayment {
+  _id: string;
+  orderId?: {
+    _id?: string;
+    trackingNumber?: string;
+    orderType?: string;
+    status?: string;
+    total?: number;
+    createdAt?: string;
+  };
+  userId?: {
+    _id?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  };
+  amount: number;
+  currency?: string;
+  paymentMethod?: string;
+  status?: string;
+  reference: string;
+  provider?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+  receiptMeta?: {
+    orderType?: string;
+    tableNumber?: string;
+    deliveryAddress?: string;
+  };
+  createdAt: string;
 }
 
 interface AdminReservation {
@@ -81,7 +137,7 @@ interface ReservationAdminConfig {
 interface AdminWineItem {
   _id: string;
   name: string;
-  productType: "wine" | "arrack" | "whiskey" | "whisky" | "rum" | "beer";
+  productType: "wine" | "arrack" | "whiskey" | "whisky" | "rum" | "vodka" | "beer";
   category: string;
   subCategory?: string;
   brand?: string;
@@ -130,6 +186,19 @@ interface AdminBiteItem {
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+interface SellerCatalogItem {
+  _id: string;
+  name: string;
+  productType: string;
+  category: string;
+  price: number;
+  stock: number;
+  image?: string;
+  description?: string;
+  rating?: number;
+  sellerId?: string | { _id?: string } | null;
 }
 
 const sectionData: Record<
@@ -320,10 +389,13 @@ const statusColorMap = {
 };
 
 export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageProps) => {
+  const navigate = useNavigate();
+  const { addToCart, state, updateProfile, changePassword, toggleTwoFactor } = useApp();
   const data = sectionData[section];
   const defaultReservationTimeSlots = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"];
   const outOfStockSectionRef = useRef<HTMLDivElement | null>(null);
   const outOfStockBitesSectionRef = useRef<HTMLDivElement | null>(null);
+  const settingsAvatarInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingSellers, setPendingSellers] = useState<PendingSeller[]>([]);
   const [isLoadingSellers, setIsLoadingSellers] = useState(false);
   const [isApprovingSellerId, setIsApprovingSellerId] = useState<string | null>(null);
@@ -357,6 +429,44 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
   const [isChangePickerOpen, setIsChangePickerOpen] = useState(false);
   const [changePickerMode, setChangePickerMode] = useState<ProductEditorMode>("wine");
   const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [orderItems, setOrderItems] = useState<AdminOrder[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [paymentItems, setPaymentItems] = useState<AdminPayment[]>([]);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
+  const [ordersChartMode, setOrdersChartMode] = useState<"customer" | "seller">("customer");
+  const [isUpdatingOrderId, setIsUpdatingOrderId] = useState<string | null>(null);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+  const [analyticsUsersCount, setAnalyticsUsersCount] = useState(0);
+  const [analyticsOrders, setAnalyticsOrders] = useState<AdminOrder[]>([]);
+  const [analyticsReservations, setAnalyticsReservations] = useState<AdminReservation[]>([]);
+  const [analyticsPayments, setAnalyticsPayments] = useState<AdminPayment[]>([]);
+  const [settingsProfileForm, setSettingsProfileForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    avatar: "",
+  });
+  const [settingsPasswordForm, setSettingsPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [isSavingSettingsProfile, setIsSavingSettingsProfile] = useState(false);
+  const [isSavingSettingsPassword, setIsSavingSettingsPassword] = useState(false);
+  const [isSavingTwoFactor, setIsSavingTwoFactor] = useState(false);
+  const [settingsProfileMessage, setSettingsProfileMessage] = useState("");
+  const [settingsPasswordMessage, setSettingsPasswordMessage] = useState("");
+  const [settingsSecurityMessage, setSettingsSecurityMessage] = useState("");
+  const [settingsProfileError, setSettingsProfileError] = useState("");
+  const [settingsPasswordError, setSettingsPasswordError] = useState("");
+  const [settingsSecurityError, setSettingsSecurityError] = useState("");
+  const [isCreateOrderModalOpen, setIsCreateOrderModalOpen] = useState(false);
+  const [isLoadingCreateOrderData, setIsLoadingCreateOrderData] = useState(false);
+  const [isAddingCreateOrderToCart, setIsAddingCreateOrderToCart] = useState(false);
+  const [createOrderSellers, setCreateOrderSellers] = useState<SellerUser[]>([]);
+  const [createOrderItems, setCreateOrderItems] = useState<SellerCatalogItem[]>([]);
+  const [selectedCreateOrderSellerId, setSelectedCreateOrderSellerId] = useState<string>("");
+  const [selectedCreateOrderQuantities, setSelectedCreateOrderQuantities] = useState<Record<string, number>>({});
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | "">("");
 
@@ -365,6 +475,127 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
   const isReservationsSection = section === "reservations";
   const isWinesSection = section === "wines";
   const isBitesSection = section === "bites";
+  const isOrdersSection = section === "orders";
+  const isAnalyticsSection = section === "analytics";
+  const isSettingsSection = section === "settings";
+
+  const getSellerTypeLabel = (sellerType?: string) => {
+    const labels: Record<string, string> = {
+      liquor_supplier: "Liquor Supplier",
+      restaurant: "Restaurant",
+      wine_company: "Wine Supplier",
+      beer_company: "Beer Supplier",
+      snacks_provider: "Snack Provider",
+    };
+    return labels[sellerType || ""] || "Seller";
+  };
+
+  const getItemSellerId = (item: SellerCatalogItem) => {
+    if (!item.sellerId) return "";
+    if (typeof item.sellerId === "string") return item.sellerId;
+    return String(item.sellerId?._id || "");
+  };
+
+  const loadCreateOrderData = async () => {
+    setIsLoadingCreateOrderData(true);
+    try {
+      const [sellersResponse, winesResponse, bitesResponse, sellerProductsResponse] = await Promise.all([
+        apiRequest<{ sellers?: SellerUser[] }>("/users/sellers/list"),
+        apiRequest<{ items?: SellerCatalogItem[] }>("/wines"),
+        apiRequest<{ items?: SellerCatalogItem[] }>("/bites"),
+        apiRequest<{ items?: SellerCatalogItem[] }>("/seller-products"),
+      ]);
+
+      const activeSellers = (sellersResponse.sellers || []).filter((seller) => seller.status === "active");
+      const catalog = [...(winesResponse.items || []), ...(bitesResponse.items || []), ...(sellerProductsResponse.items || [])];
+
+      setCreateOrderSellers(activeSellers);
+      setCreateOrderItems(catalog);
+      setSelectedCreateOrderSellerId((prev) => prev || activeSellers[0]?._id || "");
+    } catch (error) {
+      setFeedbackType("error");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to load seller catalog");
+    } finally {
+      setIsLoadingCreateOrderData(false);
+    }
+  };
+
+  const openCreateOrderModal = async () => {
+    setIsCreateOrderModalOpen(true);
+    setSelectedCreateOrderQuantities({});
+    await loadCreateOrderData();
+  };
+
+  const selectedSellerItems = useMemo(
+    () => createOrderItems.filter((item) => getItemSellerId(item) === selectedCreateOrderSellerId),
+    [createOrderItems, selectedCreateOrderSellerId]
+  );
+
+  const selectedCreateOrderCount = useMemo(
+    () => Object.values(selectedCreateOrderQuantities).reduce((sum, qty) => sum + Number(qty || 0), 0),
+    [selectedCreateOrderQuantities]
+  );
+
+  const handleCreateOrderQuantityChange = (itemId: string, nextQuantity: number, maxStock: number) => {
+    const normalized = Math.max(0, Math.min(Number(nextQuantity || 0), Math.max(0, Number(maxStock || 0))));
+    setSelectedCreateOrderQuantities((prev) => {
+      if (normalized === 0) {
+        const updated = { ...prev };
+        delete updated[itemId];
+        return updated;
+      }
+      return {
+        ...prev,
+        [itemId]: normalized,
+      };
+    });
+  };
+
+  const handleAddCreateOrderItemsToCart = async () => {
+    const selectedItems = Object.entries(selectedCreateOrderQuantities).filter(([, qty]) => Number(qty) > 0);
+    if (selectedItems.length === 0) {
+      setFeedbackType("error");
+      setFeedbackMessage("Select at least one item quantity before adding to cart.");
+      return;
+    }
+
+    setIsAddingCreateOrderToCart(true);
+    try {
+      for (const [itemId, qty] of selectedItems) {
+        const item = createOrderItems.find((entry) => entry._id === itemId);
+        if (!item) continue;
+
+        const normalizedType = ["bite", "food", "beverage"].includes(String(item.productType || "").toLowerCase())
+          ? "bite"
+          : "wine";
+
+        await addToCart(
+          {
+            id: item._id,
+            name: item.name,
+            type: normalizedType,
+            category: item.category || "General",
+            price: Number(item.price || 0),
+            image: item.image || "",
+            rating: Number(item.rating || 0),
+            description: item.description || "",
+          },
+          undefined,
+          Number(qty)
+        );
+      }
+
+      setIsCreateOrderModalOpen(false);
+      setFeedbackType("success");
+      setFeedbackMessage("Selected seller items added to cart successfully.");
+      navigate("/cart", { state: { orderType: "delivery" } });
+    } catch (error) {
+      setFeedbackType("error");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to add selected items to cart");
+    } finally {
+      setIsAddingCreateOrderToCart(false);
+    }
+  };
 
   const loadPendingSellers = async () => {
     setIsLoadingSellers(true);
@@ -598,6 +829,295 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
 
     return () => window.clearInterval(timer);
   }, [isBitesSection, isWinesSection]);
+
+  const isSellerRelatedOrder = (order: AdminOrder) =>
+    (order.items || []).some((item) => Boolean(item?.productId?.sellerId));
+
+  const getOrderUserRole = (order: AdminOrder) =>
+    typeof order.userId === "object" ? String(order.userId?.role || "").toLowerCase() : "";
+
+  const normalizeOrderStatus = (status: string) => {
+    const normalized = String(status || "").toLowerCase();
+    if (normalized === "processing") return "preparing";
+    if (normalized === "deliverd") return "delivered";
+    if (normalized === "cancleld") return "cancelled";
+    return normalized;
+  };
+
+  const loadOrdersSectionData = async (options?: { preserveFeedback?: boolean }) => {
+    setIsLoadingOrders(true);
+    setIsLoadingPayments(true);
+    if (!options?.preserveFeedback) {
+      setFeedbackMessage("");
+    }
+
+    try {
+      const [ordersResult, paymentsResult] = await Promise.allSettled([
+        apiRequest<{ orders?: AdminOrder[] }>("/orders"),
+        apiRequest<{ payments?: AdminPayment[] }>("/payments"),
+      ]);
+
+      if (ordersResult.status === "fulfilled") {
+        const sortedOrders = [...(ordersResult.value.orders || [])].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setOrderItems(sortedOrders);
+      }
+
+      if (paymentsResult.status === "fulfilled") {
+        const sortedPayments = [...(paymentsResult.value.payments || [])].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setPaymentItems(sortedPayments);
+      }
+
+      if (ordersResult.status === "rejected" && paymentsResult.status === "rejected") {
+        throw new Error("Failed to load orders and payments data");
+      }
+
+      if (ordersResult.status === "fulfilled" && paymentsResult.status === "rejected") {
+        setFeedbackType("error");
+        setFeedbackMessage("Orders loaded. Payments endpoint is unavailable right now.");
+      }
+    } catch (error) {
+      setFeedbackType("error");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to load orders data");
+    } finally {
+      setIsLoadingOrders(false);
+      setIsLoadingPayments(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isOrdersSection) {
+      return;
+    }
+
+    void loadOrdersSectionData();
+  }, [isOrdersSection]);
+
+  useEffect(() => {
+    if (!isOrdersSection) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      void loadOrdersSectionData({ preserveFeedback: true });
+    }, 10000);
+
+    return () => window.clearInterval(timer);
+  }, [isOrdersSection]);
+
+  const loadAnalyticsSectionData = async (options?: { preserveFeedback?: boolean }) => {
+    setIsLoadingAnalytics(true);
+    if (!options?.preserveFeedback) {
+      setFeedbackMessage("");
+    }
+
+    try {
+      const [usersResult, ordersResult, reservationsResult, paymentsResult] = await Promise.allSettled([
+        apiRequest<{ users?: CustomerUser[] }>("/users"),
+        apiRequest<{ orders?: AdminOrder[] }>("/orders"),
+        apiRequest<{ reservations?: AdminReservation[] }>("/reservations"),
+        apiRequest<{ payments?: AdminPayment[] }>("/payments"),
+      ]);
+
+      if (usersResult.status === "fulfilled") {
+        setAnalyticsUsersCount((usersResult.value.users || []).length);
+      }
+      if (ordersResult.status === "fulfilled") {
+        setAnalyticsOrders(ordersResult.value.orders || []);
+      }
+      if (reservationsResult.status === "fulfilled") {
+        setAnalyticsReservations(reservationsResult.value.reservations || []);
+      }
+      if (paymentsResult.status === "fulfilled") {
+        setAnalyticsPayments(paymentsResult.value.payments || []);
+      }
+
+      const hasAtLeastOneSuccess =
+        usersResult.status === "fulfilled" ||
+        ordersResult.status === "fulfilled" ||
+        reservationsResult.status === "fulfilled" ||
+        paymentsResult.status === "fulfilled";
+
+      if (!hasAtLeastOneSuccess) {
+        throw new Error("Failed to load analytics data");
+      }
+    } catch (error) {
+      setFeedbackType("error");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to load analytics data");
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isAnalyticsSection) {
+      return;
+    }
+
+    void loadAnalyticsSectionData();
+  }, [isAnalyticsSection]);
+
+  useEffect(() => {
+    if (!isAnalyticsSection) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      void loadAnalyticsSectionData({ preserveFeedback: true });
+    }, 10000);
+
+    return () => window.clearInterval(timer);
+  }, [isAnalyticsSection]);
+
+  useEffect(() => {
+    if (!isSettingsSection) {
+      return;
+    }
+
+    setSettingsProfileForm({
+      name: state.user?.name || "",
+      email: state.user?.email || "",
+      phone: state.user?.phone || "",
+      avatar: state.user?.avatar || "",
+    });
+  }, [isSettingsSection, state.user]);
+
+  const handleSaveSettingsProfile = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSettingsProfileMessage("");
+    setSettingsProfileError("");
+    setIsSavingSettingsProfile(true);
+
+    try {
+      await updateProfile({
+        name: settingsProfileForm.name,
+        email: settingsProfileForm.email,
+        phone: settingsProfileForm.phone,
+        avatar: settingsProfileForm.avatar,
+      });
+      setSettingsProfileMessage("Admin account details updated successfully.");
+    } catch (error) {
+      setSettingsProfileError(error instanceof Error ? error.message : "Failed to update account details");
+    } finally {
+      setIsSavingSettingsProfile(false);
+    }
+  };
+
+  const handleSettingsAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setSettingsProfileError("Image must be less than 5MB");
+      return;
+    }
+
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      setSettingsProfileError("Only JPG, PNG, WebP, and GIF files are supported");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSettingsProfileForm((prev) => ({
+        ...prev,
+        avatar: String(reader.result || ""),
+      }));
+      setSettingsProfileError("");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSettingsAvatarRemove = () => {
+    setSettingsProfileForm((prev) => ({
+      ...prev,
+      avatar: "",
+    }));
+    setSettingsProfileError("");
+  };
+
+  const handleChangeSettingsPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSettingsPasswordMessage("");
+    setSettingsPasswordError("");
+
+    if (settingsPasswordForm.newPassword !== settingsPasswordForm.confirmPassword) {
+      setSettingsPasswordError("New password and confirm password do not match.");
+      return;
+    }
+
+    setIsSavingSettingsPassword(true);
+    try {
+      await changePassword({
+        currentPassword: settingsPasswordForm.currentPassword,
+        newPassword: settingsPasswordForm.newPassword,
+      });
+      setSettingsPasswordMessage("Password changed successfully.");
+      setSettingsPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (error) {
+      setSettingsPasswordError(error instanceof Error ? error.message : "Failed to change password");
+    } finally {
+      setIsSavingSettingsPassword(false);
+    }
+  };
+
+  const handleToggleTwoFactor = async () => {
+    setSettingsSecurityMessage("");
+    setSettingsSecurityError("");
+    setIsSavingTwoFactor(true);
+    try {
+      const nextValue = !Boolean(state.user?.twoFactorEnabled);
+      await toggleTwoFactor(nextValue);
+      setSettingsSecurityMessage(nextValue ? "Two-factor authentication enabled." : "Two-factor authentication disabled.");
+    } catch (error) {
+      setSettingsSecurityError(error instanceof Error ? error.message : "Failed to update 2FA setting");
+    } finally {
+      setIsSavingTwoFactor(false);
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId: string, nextStatus: string) => {
+    const normalizedStatus = normalizeOrderStatus(nextStatus);
+    setIsUpdatingOrderId(orderId);
+
+    try {
+      await apiRequest(`/orders/${orderId}/status`, {
+        method: "PUT",
+        body: JSON.stringify({ status: normalizedStatus }),
+      });
+
+      await loadOrdersSectionData({ preserveFeedback: true });
+      setFeedbackType("success");
+      setFeedbackMessage(`Order status updated to ${normalizedStatus}.`);
+    } catch (error) {
+      setFeedbackType("error");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to update order status");
+    } finally {
+      setIsUpdatingOrderId(null);
+    }
+  };
+
+  const handleViewPaymentReceipt = (payment: AdminPayment) => {
+    downloadReceiptPdf(`receipt-${payment.reference}.pdf`, "Payment Receipt", [
+      { label: "Payment Reference", value: payment.reference || "-" },
+      { label: "Date", value: new Date(payment.createdAt).toLocaleString() },
+      { label: "Amount", value: `${payment.currency || "LKR"} ${Number(payment.amount || 0).toFixed(2)}` },
+      { label: "Payment Method", value: payment.paymentMethod || "-" },
+      { label: "Status", value: payment.status || "-" },
+      { label: "Customer", value: payment.userId?.name || payment.userId?.email || "-" },
+      { label: "Order Type", value: payment.orderId?.orderType || payment.receiptMeta?.orderType || "-" },
+      { label: "Tracking Number", value: payment.orderId?.trackingNumber || "-" },
+      { label: "Table Number", value: payment.receiptMeta?.tableNumber || "-" },
+      { label: "Delivery Address", value: payment.receiptMeta?.deliveryAddress || "-" },
+      { label: "Card", value: payment.cardLast4 ? `${payment.cardBrand || "CARD"} •••• ${payment.cardLast4}` : "-" },
+    ]);
+  };
 
   const openAddProductModal = (mode: ProductEditorMode) => {
     setProductModalMode(mode);
@@ -883,7 +1403,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     const outOfStockCategories = new Set(wineItems.filter((item) => Number(item.stock || 0) <= 0).map((item) => item.productType)).size;
 
     return [
-      { label: "Total Number Of Liquours", value: String(totalLiquors), delta: "arrack, wine, beer, whiskey, rum" },
+      { label: "Total Number Of Liquours", value: String(totalLiquors), delta: "arrack, wine, beer, whiskey, rum, vodka" },
       { label: "Total Registered Liquour Suppliers", value: String(registeredSuppliers), delta: "admin and sellers can add" },
       { label: "Out Of Stock Categories", value: String(outOfStockCategories), delta: "click to view list" },
     ];
@@ -954,6 +1474,197 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     return [...menuActivities, ...supplierActivities].sort((a, b) => b.time - a.time).slice(0, 12);
   }, [biteItems, sellersList]);
 
+  const ordersByType = useMemo(() => {
+    const customerOrders = orderItems.filter((order) => {
+      const role = getOrderUserRole(order);
+      if (role === "customer") return true;
+      if (role === "seller" || role === "admin") return false;
+      // Fallback for older/unpopulated records: treat non-seller-related orders as customer orders.
+      return !isSellerRelatedOrder(order);
+    });
+
+    const sellerOrders = orderItems.filter((order) => {
+      const role = getOrderUserRole(order);
+      // "Orders to sellers" are operational purchase orders initiated by admin.
+      return role === "admin" && isSellerRelatedOrder(order);
+    });
+    return { customerOrders, sellerOrders };
+  }, [orderItems]);
+
+  const pendingStatuses = new Set(["pending", "confirmed", "preparing", "ready"]);
+
+  const ordersKpis = useMemo(() => {
+    if (!isOrdersSection) {
+      return data.kpis;
+    }
+
+    const deliveredCustomers = ordersByType.customerOrders.filter((order) => order.status === "delivered").length;
+    const pendingAll = orderItems.filter((order) => pendingStatuses.has(normalizeOrderStatus(order.status))).length;
+
+    return [
+      {
+        label: "Total Customer Orders",
+        value: String(ordersByType.customerOrders.length),
+        delta: `Delivered: ${deliveredCustomers}`,
+      },
+      {
+        label: "Total Orders To Sellers",
+        value: String(ordersByType.sellerOrders.length),
+        delta: "Orders containing seller products",
+      },
+      {
+        label: "Total Pending Orders",
+        value: String(pendingAll),
+        delta: "Customer + seller related",
+      },
+    ];
+  }, [data.kpis, isOrdersSection, orderItems, ordersByType.customerOrders, ordersByType.sellerOrders]);
+
+  const analyticsKpis = useMemo(() => {
+    const revenue = analyticsOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+    const completedPayments = analyticsPayments.filter((payment) => String(payment.status || "").toLowerCase() === "completed").length;
+
+    return [
+      {
+        label: "Total Revenue",
+        value: `LKR ${Math.round(revenue).toLocaleString()}`,
+        delta: `${analyticsOrders.length} orders`,
+      },
+      {
+        label: "Users + Reservations",
+        value: `${analyticsUsersCount + analyticsReservations.length}`,
+        delta: `${analyticsUsersCount} users · ${analyticsReservations.length} reservations`,
+      },
+      {
+        label: "Completed Payments",
+        value: String(completedPayments),
+        delta: `${analyticsPayments.length} total payments`,
+      },
+    ];
+  }, [analyticsOrders, analyticsPayments, analyticsReservations.length, analyticsUsersCount]);
+
+  const analyticsRevenueTrendData = useMemo(() => {
+    const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const values = [0, 0, 0, 0, 0, 0, 0];
+
+    analyticsOrders.forEach((order) => {
+      const day = new Date(order.createdAt).getDay();
+      const mondayIndex = (day + 6) % 7;
+      values[mondayIndex] += Number(order.total || 0);
+    });
+
+    return labels.map((label, index) => ({
+      label,
+      revenue: Math.round(values[index]),
+    }));
+  }, [analyticsOrders]);
+
+  const analyticsOrderStatusData = useMemo(() => {
+    const counts = {
+      pending: 0,
+      preparing: 0,
+      delivered: 0,
+      cancelled: 0,
+    };
+
+    analyticsOrders.forEach((order) => {
+      const status = normalizeOrderStatus(order.status);
+      if (status === "pending") counts.pending += 1;
+      if (status === "preparing" || status === "confirmed" || status === "ready") counts.preparing += 1;
+      if (status === "delivered") counts.delivered += 1;
+      if (status === "cancelled") counts.cancelled += 1;
+    });
+
+    return [
+      { label: "Pending", count: counts.pending },
+      { label: "Preparing", count: counts.preparing },
+      { label: "Delivered", count: counts.delivered },
+      { label: "Cancelled", count: counts.cancelled },
+    ];
+  }, [analyticsOrders]);
+
+  const analyticsPaymentMethodData = useMemo(() => {
+    const counts = {
+      card: 0,
+      cash: 0,
+      other: 0,
+    };
+
+    analyticsPayments.forEach((payment) => {
+      const method = String(payment.paymentMethod || "other").toLowerCase();
+      if (method === "card") counts.card += 1;
+      else if (method === "cash") counts.cash += 1;
+      else counts.other += 1;
+    });
+
+    return [
+      { label: "Card", count: counts.card },
+      { label: "Cash", count: counts.cash },
+      { label: "Other", count: counts.other },
+    ];
+  }, [analyticsPayments]);
+
+  const settingsKpis = useMemo(
+    () => [
+      {
+        label: "Account Status",
+        value: String(state.user?.status || "active").toUpperCase(),
+        delta: "Live profile state",
+      },
+      {
+        label: "2FA",
+        value: state.user?.twoFactorEnabled ? "ENABLED" : "DISABLED",
+        delta: "Security layer",
+      },
+      {
+        label: "Role",
+        value: String(state.user?.role || "admin").toUpperCase(),
+        delta: "Access control",
+      },
+    ],
+    [state.user?.role, state.user?.status, state.user?.twoFactorEnabled]
+  );
+
+  const recentOrderActivities = useMemo(() => {
+    return orderItems.slice(0, 18).map((order) => {
+      const customerName = typeof order.userId === "object" ? order.userId?.name || order.userId?.email || "Customer" : "Customer";
+      const kind = isSellerRelatedOrder(order) ? "Seller-related order" : "Customer order";
+      return {
+        id: order._id,
+        title: `${kind} · ${order.status}`,
+        detail: `${customerName} · ${order.orderType} · LKR ${Number(order.total || 0).toFixed(2)}`,
+        time: new Date(order.createdAt).getTime(),
+      };
+    });
+  }, [orderItems]);
+
+  const weeklyOrderChartData = useMemo(() => {
+    const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const source = ordersChartMode === "customer" ? ordersByType.customerOrders : ordersByType.sellerOrders;
+    const counts = [0, 0, 0, 0, 0, 0, 0];
+
+    source.forEach((order) => {
+      const day = new Date(order.createdAt).getDay();
+      const mondayIndex = (day + 6) % 7;
+      counts[mondayIndex] += 1;
+    });
+
+    return labels.map((label, index) => ({
+      label,
+      orders: counts[index],
+    }));
+  }, [ordersByType.customerOrders, ordersByType.sellerOrders, ordersChartMode]);
+
+  const customerPayments = useMemo(
+    () => paymentItems.filter((payment) => !ordersByType.sellerOrders.some((order) => order._id === payment.orderId?._id)),
+    [ordersByType.sellerOrders, paymentItems]
+  );
+
+  const sellerPayments = useMemo(
+    () => paymentItems.filter((payment) => ordersByType.sellerOrders.some((order) => order._id === payment.orderId?._id)),
+    [ordersByType.sellerOrders, paymentItems]
+  );
+
   const pendingReservationAlerts = useMemo(
     () => reservationItems.filter((item) => item.status === "pending").sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     [reservationItems]
@@ -1022,6 +1733,46 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               Add Item
             </button>
           </div>
+        ) : isOrdersSection ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => void loadOrdersSectionData()}
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+            >
+              Refresh Orders
+            </button>
+            <button
+              onClick={() => void openCreateOrderModal()}
+              className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] transition-colors"
+            >
+              Create Order
+            </button>
+          </div>
+        ) : isAnalyticsSection ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => void loadAnalyticsSectionData()}
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+            >
+              Refresh Analytics
+            </button>
+          </div>
+        ) : isSettingsSection ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => {
+                setSettingsProfileMessage("");
+                setSettingsPasswordMessage("");
+                setSettingsSecurityMessage("");
+                setSettingsProfileError("");
+                setSettingsPasswordError("");
+                setSettingsSecurityError("");
+              }}
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+            >
+              Clear Messages
+            </button>
+          </div>
         ) : !isUsersSection && (
           <button className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-sm font-bold hover:bg-[#c39b22] transition-colors w-fit">
             {data.actionLabel}
@@ -1030,7 +1781,22 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {(isUsersSection ? usersKpis : isReservationsSection ? reservationKpis : isWinesSection ? winesKpis : isBitesSection ? bitesKpis : sellersKpis).map((item) => (
+        {(isUsersSection
+          ? usersKpis
+          : isReservationsSection
+          ? reservationKpis
+          : isWinesSection
+          ? winesKpis
+          : isBitesSection
+          ? bitesKpis
+          : isOrdersSection
+          ? ordersKpis
+          : isAnalyticsSection
+          ? analyticsKpis
+          : isSettingsSection
+          ? settingsKpis
+          : sellersKpis
+        ).map((item) => (
           <div
             key={item.label}
             onClick={() => {
@@ -1552,6 +2318,444 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
             )}
           </div>
         </div>
+      ) : isOrdersSection ? (
+        <div className="space-y-6">
+          <div className="bg-[#111] border border-[#333] rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-lg font-bold">Payment Details</h2>
+              <span className="text-xs text-gray-400">Customer and seller-related paid orders</span>
+            </div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-4">
+                <h3 className="text-sm font-semibold text-white mb-3">Customer Orders Payments</h3>
+                <div
+                  className="space-y-2 max-h-[240px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                >
+                  {isLoadingPayments && customerPayments.length === 0 ? (
+                    <p className="text-xs text-gray-400">Loading payments...</p>
+                  ) : customerPayments.length === 0 ? (
+                    <p className="text-xs text-gray-400">No payment records found.</p>
+                  ) : (
+                    customerPayments.slice(0, 20).map((payment) => (
+                      <div key={payment._id} className="rounded border border-[#2a2a2a] bg-[#111] p-2">
+                        <p className="text-xs text-white font-semibold">{payment.reference}</p>
+                        <p className="text-[11px] text-gray-400 mt-1">
+                          {(payment.currency || "LKR")} {Number(payment.amount || 0).toFixed(2)} · {payment.paymentMethod || "-"}
+                        </p>
+                        <button
+                          onClick={() => handleViewPaymentReceipt(payment)}
+                          className="mt-2 rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-2.5 py-1 text-[11px] font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                        >
+                          View Receipt
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-4">
+                <h3 className="text-sm font-semibold text-white mb-3">Orders To Sellers Payments</h3>
+                <div
+                  className="space-y-2 max-h-[240px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                >
+                  {isLoadingPayments && sellerPayments.length === 0 ? (
+                    <p className="text-xs text-gray-400">Loading payments...</p>
+                  ) : sellerPayments.length === 0 ? (
+                    <p className="text-xs text-gray-400">No seller-related payment records found.</p>
+                  ) : (
+                    sellerPayments.slice(0, 20).map((payment) => (
+                      <div key={payment._id} className="rounded border border-[#2a2a2a] bg-[#111] p-2">
+                        <p className="text-xs text-white font-semibold">{payment.reference}</p>
+                        <p className="text-[11px] text-gray-400 mt-1">
+                          {(payment.currency || "LKR")} {Number(payment.amount || 0).toFixed(2)} · {payment.paymentMethod || "-"}
+                        </p>
+                        <button
+                          onClick={() => handleViewPaymentReceipt(payment)}
+                          className="mt-2 rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-2.5 py-1 text-[11px] font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                        >
+                          View Receipt
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+            <div className="xl:col-span-3 space-y-6">
+              <div className="bg-[#111] border border-[#333] rounded-xl p-6">
+                <h2 className="text-white text-lg font-bold mb-4">Recent Orders Activities</h2>
+                <div
+                  className="space-y-3 max-h-[280px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                >
+                  {isLoadingOrders && recentOrderActivities.length === 0 ? (
+                    <p className="text-sm text-gray-400">Loading recent activities...</p>
+                  ) : recentOrderActivities.length === 0 ? (
+                    <p className="text-sm text-gray-400">No order activities found.</p>
+                  ) : (
+                    recentOrderActivities.map((activity) => (
+                      <div key={activity.id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
+                        <p className="text-sm text-white font-semibold">{activity.title}</p>
+                        <p className="text-xs text-gray-400 mt-1">{activity.detail}</p>
+                        <p className="text-xs text-[#D4AF37] mt-1">{new Date(activity.time).toLocaleString()}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-[#111] border border-[#333] rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4 gap-2">
+                  <h2 className="text-white text-lg font-bold">Weekly Orders Analysis</h2>
+                  <select
+                    value={ordersChartMode}
+                    onChange={(event) => setOrdersChartMode(event.target.value as "customer" | "seller")}
+                    className="rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-xs text-gray-200"
+                  >
+                    <option value="customer">Customer's Orders</option>
+                    <option value="seller">Seller's Orders</option>
+                  </select>
+                </div>
+                <div className="h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={weeklyOrderChartData} margin={{ top: 16, right: 12, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="ordersLineGlow" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#D4AF37" stopOpacity={0.35} />
+                          <stop offset="100%" stopColor="#D4AF37" stopOpacity={0.05} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke="#2f2f2f" strokeDasharray="3 3" vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        stroke="#9ca3af"
+                        tick={{ fill: "#9ca3af", fontSize: 11 }}
+                        label={{ value: "Week Days", position: "insideBottom", offset: -6, fill: "#9ca3af", fontSize: 11 }}
+                      />
+                      <YAxis
+                        stroke="#9ca3af"
+                        tick={{ fill: "#9ca3af", fontSize: 11 }}
+                        allowDecimals={false}
+                        label={{ value: "Orders Count", angle: -90, position: "insideLeft", fill: "#9ca3af", fontSize: 11 }}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "rgba(212,175,55,0.08)" }}
+                        contentStyle={{ background: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="orders"
+                        stroke="#D4AF37"
+                        strokeWidth={3}
+                        dot={{ r: 4, strokeWidth: 2, stroke: "#D4AF37", fill: "#0f0f0f" }}
+                        activeDot={{ r: 6, strokeWidth: 2, stroke: "#D4AF37", fill: "#D4AF37" }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="orders"
+                        stroke="url(#ordersLineGlow)"
+                        strokeWidth={10}
+                        dot={false}
+                        activeDot={false}
+                        isAnimationActive={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            <div className="xl:col-span-2 bg-[#111] border border-[#333] rounded-xl p-6">
+              <h2 className="text-white text-lg font-bold mb-4">Customer Order Status Tracker</h2>
+              <div
+                className="space-y-3 max-h-[620px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+              >
+                {ordersByType.customerOrders.length === 0 ? (
+                  <p className="text-sm text-gray-400">No customer orders found.</p>
+                ) : (
+                  ordersByType.customerOrders.slice(0, 30).map((order) => {
+                    const customerName = typeof order.userId === "object" ? order.userId?.name || order.userId?.email || "Customer" : "Customer";
+                    return (
+                      <div key={order._id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
+                        <p className="text-sm text-white font-semibold">{customerName}</p>
+                        <p className="text-xs text-gray-400 mt-1">{order.orderType} · {new Date(order.createdAt).toLocaleString()}</p>
+                        <p className="text-xs text-[#D4AF37] mt-1">Tracking: {order.trackingNumber || "N/A"}</p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <span className="text-[11px] text-gray-300">Status:</span>
+                          <select
+                            value={order.status}
+                            disabled={isUpdatingOrderId === order._id}
+                            onChange={(event) => void handleUpdateOrderStatus(order._id, event.target.value)}
+                            className="flex-1 rounded border border-[#2a2a2a] bg-[#111] px-2 py-1 text-xs text-gray-200"
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="preparing">Processing</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : isAnalyticsSection ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+            <div className="xl:col-span-3 bg-[#111] border border-[#333] rounded-xl p-6">
+              <h2 className="text-white text-lg font-bold mb-4">Revenue Overview (Live)</h2>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={analyticsRevenueTrendData} margin={{ top: 16, right: 16, left: 0, bottom: 0 }}>
+                    <CartesianGrid stroke="#2f2f2f" strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="label" stroke="#9ca3af" tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                    <YAxis stroke="#9ca3af" tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                    <Tooltip
+                      cursor={{ fill: "rgba(212,175,55,0.08)" }}
+                      contentStyle={{ background: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                    />
+                    <Line type="monotone" dataKey="revenue" stroke="#D4AF37" strokeWidth={3} dot={{ r: 4, fill: "#D4AF37" }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="xl:col-span-2 bg-[#111] border border-[#333] rounded-xl p-6">
+              <h2 className="text-white text-lg font-bold mb-4">Order Status Distribution</h2>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={analyticsOrderStatusData}>
+                    <CartesianGrid stroke="#2f2f2f" strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="label" stroke="#9ca3af" tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                    <YAxis stroke="#9ca3af" tick={{ fill: "#9ca3af", fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip
+                      cursor={{ fill: "rgba(212,175,55,0.08)" }}
+                      contentStyle={{ background: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                    />
+                    <Bar dataKey="count" radius={[6, 6, 0, 0]} fill="#D4AF37" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+            <div className="xl:col-span-3 bg-[#111] border border-[#333] rounded-xl p-6">
+              <h2 className="text-white text-lg font-bold mb-4">Payment Methods Trend</h2>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={analyticsPaymentMethodData}>
+                    <CartesianGrid stroke="#2f2f2f" strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="label" stroke="#9ca3af" tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                    <YAxis stroke="#9ca3af" tick={{ fill: "#9ca3af", fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip
+                      cursor={{ fill: "rgba(212,175,55,0.08)" }}
+                      contentStyle={{ background: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                    />
+                    <Bar dataKey="count" fill="#b89328" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="xl:col-span-2 bg-[#111] border border-[#333] rounded-xl p-6">
+              <h2 className="text-white text-lg font-bold mb-4">Live Analytics Status</h2>
+              <div className="space-y-3">
+                <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3 text-sm text-gray-300">
+                  Auto refresh: every 10 seconds
+                </div>
+                <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3 text-sm text-gray-300">
+                  Users tracked: {analyticsUsersCount}
+                </div>
+                <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3 text-sm text-gray-300">
+                  Orders tracked: {analyticsOrders.length}
+                </div>
+                <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3 text-sm text-gray-300">
+                  Payments tracked: {analyticsPayments.length}
+                </div>
+                <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3 text-sm text-gray-300">
+                  Reservations tracked: {analyticsReservations.length}
+                </div>
+                {isLoadingAnalytics && <p className="text-xs text-gray-400">Refreshing analytics...</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : isSettingsSection ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <section className="rounded-2xl border border-[#333] bg-[#111] p-6">
+              <h2 className="text-xl font-semibold text-white">Admin Account Details</h2>
+              <p className="mt-2 text-xs text-gray-400">Update admin profile details used across notifications and approvals.</p>
+
+              <form className="mt-5 space-y-4" onSubmit={handleSaveSettingsProfile}>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">Profile Image</label>
+                  <div className="flex flex-col gap-3">
+                    <button
+                      type="button"
+                      onClick={() => settingsAvatarInputRef.current?.click()}
+                      className="relative h-20 w-20 rounded-full border-2 border-[#D4AF37] bg-[#171717] hover:opacity-90 transition-opacity"
+                    >
+                      <img
+                        src={
+                          settingsProfileForm.avatar ||
+                          "https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&q=80&w=300"
+                        }
+                        alt="Admin profile preview"
+                        className="h-full w-full rounded-full object-cover"
+                      />
+                      <span className="absolute inset-0 rounded-full bg-black/35 opacity-0 hover:opacity-100 text-xs font-semibold text-white flex items-center justify-center">
+                        Change
+                      </span>
+                    </button>
+
+                    <input
+                      ref={settingsAvatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSettingsAvatarUpload}
+                      className="hidden"
+                    />
+
+                    {settingsProfileForm.avatar && (
+                      <button
+                        type="button"
+                        onClick={handleSettingsAvatarRemove}
+                        className="w-fit rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20"
+                      >
+                        Remove Image
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">Full Name</label>
+                  <input
+                    value={settingsProfileForm.name}
+                    onChange={(event) => setSettingsProfileForm((prev) => ({ ...prev, name: event.target.value }))}
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">Email</label>
+                  <input
+                    type="email"
+                    value={settingsProfileForm.email}
+                    onChange={(event) => setSettingsProfileForm((prev) => ({ ...prev, email: event.target.value }))}
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">Phone</label>
+                  <input
+                    value={settingsProfileForm.phone}
+                    onChange={(event) => setSettingsProfileForm((prev) => ({ ...prev, phone: event.target.value }))}
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    placeholder="+9477xxxxxxx"
+                  />
+                </div>
+
+                {settingsProfileMessage && <p className="rounded-lg border border-emerald-500/40 bg-emerald-700/10 p-3 text-sm text-emerald-200">{settingsProfileMessage}</p>}
+                {settingsProfileError && <p className="rounded-lg border border-red-500/40 bg-red-700/10 p-3 text-sm text-red-200">{settingsProfileError}</p>}
+
+                <button
+                  type="submit"
+                  disabled={isSavingSettingsProfile}
+                  className="rounded-lg bg-[#D4AF37] px-4 py-2.5 text-sm font-bold text-black transition-colors hover:bg-[#b6952f] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSavingSettingsProfile ? "Saving..." : "Save Account Details"}
+                </button>
+              </form>
+            </section>
+
+            <section className="rounded-2xl border border-[#333] bg-[#111] p-6">
+              <h2 className="text-xl font-semibold text-white">Security Settings</h2>
+              <p className="mt-2 text-xs text-gray-400">Manage password and two-factor authentication for admin account security.</p>
+
+              <form className="mt-5 space-y-4" onSubmit={handleChangeSettingsPassword}>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">Current Password</label>
+                  <input
+                    type="password"
+                    value={settingsPasswordForm.currentPassword}
+                    onChange={(event) => setSettingsPasswordForm((prev) => ({ ...prev, currentPassword: event.target.value }))}
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">New Password</label>
+                  <input
+                    type="password"
+                    value={settingsPasswordForm.newPassword}
+                    onChange={(event) => setSettingsPasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-400">Confirm New Password</label>
+                  <input
+                    type="password"
+                    value={settingsPasswordForm.confirmPassword}
+                    onChange={(event) => setSettingsPasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    required
+                  />
+                </div>
+
+                {settingsPasswordMessage && <p className="rounded-lg border border-emerald-500/40 bg-emerald-700/10 p-3 text-sm text-emerald-200">{settingsPasswordMessage}</p>}
+                {settingsPasswordError && <p className="rounded-lg border border-red-500/40 bg-red-700/10 p-3 text-sm text-red-200">{settingsPasswordError}</p>}
+
+                <button
+                  type="submit"
+                  disabled={isSavingSettingsPassword}
+                  className="rounded-lg border border-[#D4AF37] bg-[#171717] px-4 py-2.5 text-sm font-bold text-[#D4AF37] transition-colors hover:bg-[#252018] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSavingSettingsPassword ? "Updating..." : "Change Password"}
+                </button>
+              </form>
+
+              <div className="mt-6 rounded-lg border border-[#2a2a2a] bg-[#151515] p-4">
+                <p className="text-sm text-white font-semibold mb-1">Two-Factor Authentication</p>
+                <p className="text-xs text-gray-400 mb-3">
+                  Current status: {state.user?.twoFactorEnabled ? "Enabled" : "Disabled"}
+                </p>
+                {settingsSecurityMessage && <p className="rounded-lg border border-emerald-500/40 bg-emerald-700/10 p-3 text-sm text-emerald-200 mb-3">{settingsSecurityMessage}</p>}
+                {settingsSecurityError && <p className="rounded-lg border border-red-500/40 bg-red-700/10 p-3 text-sm text-red-200 mb-3">{settingsSecurityError}</p>}
+                <button
+                  onClick={() => void handleToggleTwoFactor()}
+                  disabled={isSavingTwoFactor}
+                  className="rounded-lg border border-[#D4AF37] bg-[#171717] px-4 py-2.5 text-sm font-bold text-[#D4AF37] transition-colors hover:bg-[#252018] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSavingTwoFactor
+                    ? "Saving..."
+                    : state.user?.twoFactorEnabled
+                    ? "Disable 2FA"
+                    : "Enable 2FA"}
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
       ) : isReservationsSection ? (
         <div className="space-y-6">
           <div className="bg-[#111] border border-[#333] rounded-xl p-5">
@@ -1770,6 +2974,118 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isCreateOrderModalOpen && isOrdersSection && (
+        <div className="fixed inset-0 z-[86] bg-black/70 backdrop-blur-[1px] flex items-center justify-center p-4">
+          <div className="w-full max-w-6xl rounded-2xl border border-[#363636] bg-[#121212] p-5 md:p-6">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-white">Create Seller Order</h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Select a registered seller, choose items with quantity, then add them to cart.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsCreateOrderModalOpen(false)}
+                className="rounded-md border border-[#3c3c3c] px-3 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+
+            {isLoadingCreateOrderData ? (
+              <p className="text-sm text-gray-400">Loading sellers and catalog...</p>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-4 lg:col-span-1">
+                  <h4 className="text-sm font-semibold text-white mb-3">Registered Sellers</h4>
+                  <div className="space-y-2 max-h-[58vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]">
+                    {createOrderSellers.length === 0 ? (
+                      <p className="text-xs text-gray-400">No active sellers found.</p>
+                    ) : (
+                      createOrderSellers.map((seller) => (
+                        <button
+                          key={seller._id}
+                          onClick={() => setSelectedCreateOrderSellerId(seller._id)}
+                          className={`w-full text-left rounded-lg border p-3 transition-colors ${
+                            selectedCreateOrderSellerId === seller._id
+                              ? "border-[#D4AF37]/70 bg-[#D4AF37]/10"
+                              : "border-[#2f2f2f] bg-[#101010] hover:border-[#D4AF37]/40"
+                          }`}
+                        >
+                          <p className="text-sm text-white font-semibold">{seller.name}</p>
+                          <p className="text-[11px] text-gray-400 mt-1">{getSellerTypeLabel(seller.sellerType)} · {seller.email}</p>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-4 lg:col-span-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold text-white">Seller Items With Quantity</h4>
+                    <span className="text-xs text-[#D4AF37] font-semibold">Selected Qty: {selectedCreateOrderCount}</span>
+                  </div>
+                  <div className="space-y-2 max-h-[58vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]">
+                    {selectedCreateOrderSellerId === "" ? (
+                      <p className="text-xs text-gray-400">Select a seller to view available items.</p>
+                    ) : selectedSellerItems.length === 0 ? (
+                      <p className="text-xs text-gray-400">No items found for selected seller.</p>
+                    ) : (
+                      selectedSellerItems.map((item) => {
+                        const selectedQty = Number(selectedCreateOrderQuantities[item._id] || 0);
+                        const stock = Math.max(0, Number(item.stock || 0));
+                        return (
+                          <div key={item._id} className="rounded-lg border border-[#2f2f2f] bg-[#101010] p-3 flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm text-white font-semibold truncate">{item.name}</p>
+                              <p className="text-[11px] text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
+                              <p className="text-[11px] text-[#D4AF37] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {stock}</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button
+                                onClick={() => handleCreateOrderQuantityChange(item._id, selectedQty - 1, stock)}
+                                className="h-8 w-8 rounded border border-[#3a3a3a] text-gray-300 hover:text-white hover:border-[#D4AF37]/60"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                min={0}
+                                max={stock}
+                                value={selectedQty}
+                                onChange={(event) => handleCreateOrderQuantityChange(item._id, Number(event.target.value || 0), stock)}
+                                className="w-16 rounded border border-[#3a3a3a] bg-[#161616] px-2 py-1 text-center text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                              />
+                              <button
+                                onClick={() => handleCreateOrderQuantityChange(item._id, selectedQty + 1, stock)}
+                                className="h-8 w-8 rounded border border-[#3a3a3a] text-gray-300 hover:text-white hover:border-[#D4AF37]/60"
+                                disabled={selectedQty >= stock}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={() => void handleAddCreateOrderItemsToCart()}
+                      disabled={isAddingCreateOrderToCart || selectedCreateOrderCount === 0}
+                      className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isAddingCreateOrderToCart ? "Adding..." : "Add To Cart"}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

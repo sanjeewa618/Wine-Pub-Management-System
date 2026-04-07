@@ -1,8 +1,11 @@
 const { Cart } = require("../models/Cart");
 const { Product } = require("../models/Product");
 const { Order } = require("../models/Order");
+const { User } = require("../models/User");
+const { Notification } = require("../models/Notification");
 const { asyncHandler } = require("../utils/asyncHandler");
 const { ApiError } = require("../utils/ApiError");
+const { sendEmail } = require("../utils/emailService");
 
 function toDeliveryAddress(rawAddress) {
   if (!rawAddress) {
@@ -128,6 +131,92 @@ const checkout = asyncHandler(async (req, res) => {
     total,
     trackingNumber: `TRK-${Date.now()}`,
   });
+
+  // If an admin places an order that includes seller products, notify each relevant seller.
+  if (String(req.user?.role || "") === "admin") {
+    const productIds = cart.items
+      .map((item) => String(item?.productId || ""))
+      .filter(Boolean);
+
+    if (productIds.length > 0) {
+      const products = await Product.find({ _id: { $in: productIds } }).select("_id name sellerId");
+      const productsById = new Map(products.map((product) => [String(product._id), product]));
+      const sellerItemsMap = new Map();
+
+      cart.items.forEach((item) => {
+        const product = productsById.get(String(item?.productId || ""));
+        const sellerId = String(product?.sellerId || "");
+        if (!sellerId) {
+          return;
+        }
+
+        if (!sellerItemsMap.has(sellerId)) {
+          sellerItemsMap.set(sellerId, []);
+        }
+
+        sellerItemsMap.get(sellerId).push({
+          productId: String(item?.productId || ""),
+          name: product?.name || item?.name || "Item",
+          quantity: Number(item?.quantity || 0),
+          price: Number(item?.price || 0),
+        });
+      });
+
+      const sellerIds = Array.from(sellerItemsMap.keys());
+
+      if (sellerIds.length > 0) {
+        const sellers = await User.find({ _id: { $in: sellerIds }, role: "seller" }).select("name email");
+        const sellerById = new Map(sellers.map((seller) => [String(seller._id), seller]));
+
+        await Promise.all(
+          sellerIds.map(async (sellerId) => {
+            const seller = sellerById.get(sellerId);
+            const itemList = sellerItemsMap.get(sellerId) || [];
+
+            await Notification.create({
+              type: "seller_order_alert",
+              title: `New order from admin (${req.user?.email || "admin"})`,
+              message: `Payment: ${req.body.paymentMethod || "card"} · ${itemList.length} item(s) assigned to you`,
+              targetRole: "seller",
+              userId: sellerId,
+              metadata: {
+                orderId: String(order._id),
+                trackingNumber: order.trackingNumber,
+                paymentMethod: req.body.paymentMethod || "card",
+                adminName: req.user?.name || "Admin",
+                adminEmail: req.user?.email || "",
+                orderType,
+                items: itemList,
+              },
+            });
+
+            if (seller?.email) {
+              const listText = itemList
+                .map((entry) => `- ${entry.name} x${entry.quantity} (LKR ${entry.price.toFixed(2)})`)
+                .join("\n");
+
+              const adminEmail = String(req.user?.email || "").trim().toLowerCase();
+
+              await sendEmail({
+                to: seller.email,
+                from: adminEmail || undefined,
+                replyTo: adminEmail || undefined,
+                subject: `New Seller Order Alert - ${order.trackingNumber}`,
+                text:
+                  `Hello ${seller.name || "Seller"},\n\n` +
+                  `A new order has been assigned to you by admin ${req.user?.name || "Admin"} (${adminEmail || "N/A"}).\n` +
+                  `Payment Method: ${req.body.paymentMethod || "card"}\n` +
+                  `Order Type: ${orderType}\n` +
+                  `Tracking Number: ${order.trackingNumber}\n\n` +
+                  `Assigned Items:\n${listText}\n\n` +
+                  `Please check your seller dashboard orders page for full details.`,
+              });
+            }
+          })
+        );
+      }
+    }
+  }
 
   cart.items = [];
   await cart.save();

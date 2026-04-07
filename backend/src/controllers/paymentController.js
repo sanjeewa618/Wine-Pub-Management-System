@@ -55,4 +55,16 @@ const getPayment = asyncHandler(async (req, res) => {
   res.json({ success: true, payment });
 });
 
-module.exports = { processPayment, getPayment };
+const listPayments = asyncHandler(async (req, res) => {
+  const role = String(req.user?.role || "").toLowerCase();
+  const filter = role === "admin" ? {} : { userId: req.user._id };
+
+  const payments = await Payment.find(filter)
+    .populate({ path: "userId", select: "name email role" })
+    .populate({ path: "orderId", select: "trackingNumber orderType status total createdAt" })
+    .sort({ createdAt: -1 });
+
+  res.json({ success: true, payments });
+});
+
+module.exports = { processPayment, getPayment, listPayments };

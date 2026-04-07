@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useApp } from "../context/AppContext";
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 
 export const CartPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { state, updateQuantity, removeFromCart } = useApp();
-  const [orderType, setOrderType] = useState<"pickup" | "delivery">("pickup");
-  const [address, setAddress] = useState("");
+  const navigationState = (location.state as { orderType?: "pickup" | "delivery"; address?: string } | null) || null;
+  const [orderType, setOrderType] = useState<"pickup" | "delivery">(navigationState?.orderType === "delivery" ? "delivery" : "pickup");
+  const [address, setAddress] = useState(navigationState?.address || "");
   const [checkoutMessage, setCheckoutMessage] = useState("");
   
   const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);

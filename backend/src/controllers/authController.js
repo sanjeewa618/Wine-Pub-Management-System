@@ -20,6 +20,7 @@ function sanitizeUser(user) {
     avatar: user.avatar,
     phone: user.phone,
     status: user.status,
+    twoFactorEnabled: Boolean(user.twoFactorEnabled),
   };
 }
 
@@ -172,10 +173,6 @@ const updateMe = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Phone number is too long");
   }
 
-  if (nextAvatar && !/^https?:\/\//i.test(nextAvatar)) {
-    throw new ApiError(400, "Avatar must be a valid http/https URL");
-  }
-
   if (nextEmail !== user.email) {
     const existing = await User.findOne({ email: nextEmail, _id: { $ne: user._id } });
     if (existing) {
@@ -238,4 +235,20 @@ const refreshToken = asyncHandler(async (req, res) => {
   res.json({ success: true, token });
 });
 
-module.exports = { register, login, getMe, updateMe, changePassword, logout, refreshToken };
+const toggleTwoFactor = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  user.twoFactorEnabled = Boolean(req.body?.enabled);
+  await user.save();
+
+  res.json({
+    success: true,
+    message: user.twoFactorEnabled ? "Two-factor authentication enabled" : "Two-factor authentication disabled",
+    user: sanitizeUser(user),
+  });
+});
+
+module.exports = { register, login, getMe, updateMe, changePassword, logout, refreshToken, toggleTwoFactor };

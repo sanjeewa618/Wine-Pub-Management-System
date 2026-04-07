@@ -34,7 +34,9 @@ function normalizeProduct(product, sellerId) {
     image:
       product.image ||
       "https://images.unsplash.com/photo-1514361892635-eae31a3d0f1d?auto=format&fit=crop&q=80&w=1000",
-    sellerId: product.sellerId || sellerId,
+    // Seeded public catalog items must stay public (sellerId null)
+    // so they are returned by /api/wines and /api/bites filters.
+    sellerId: product.sellerId ?? null,
     isActive: product.isActive !== false,
   };
 }

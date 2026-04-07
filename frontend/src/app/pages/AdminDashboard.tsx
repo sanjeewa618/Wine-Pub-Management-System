@@ -115,12 +115,6 @@ export const AdminDashboard = () => {
 
     } catch (error) {
       console.error("Error fetching admin data:", error);
-      setStats({
-        totalRevenue: 0,
-        activeReservations: 0,
-        totalOrders: 0,
-        registeredUsers: 0,
-      });
     } finally {
       setLoading(false);
     }

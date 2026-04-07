@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const productSchema = new mongoose.Schema(
+const sellerProductSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     productType: { type: String, enum: ["wine", "arrack", "whiskey", "whisky", "rum", "vodka", "beer", "bite", "food", "beverage"], required: true },
@@ -26,12 +26,12 @@ const productSchema = new mongoose.Schema(
     vegType: { type: String, default: "" },
     pairWith: { type: String, default: "" },
     popularInPub: { type: Boolean, default: false },
-    sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-const Product = mongoose.model("Product", productSchema);
+const SellerProduct = mongoose.model("SellerProduct", sellerProductSchema, "sellerproducts");
 
-module.exports = { Product };
+module.exports = { SellerProduct };

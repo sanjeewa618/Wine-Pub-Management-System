@@ -45,6 +45,7 @@ export const DeliveryCheckoutPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successData, setSuccessData] = useState<{ orderId: string; paymentRef: string; total: number } | null>(null);
+  const [codSuccessData, setCodSuccessData] = useState<{ orderId: string; total: number } | null>(null);
 
   const subtotal = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = Number((subtotal * 0.08).toFixed(2));
@@ -74,10 +75,9 @@ export const DeliveryCheckoutPage = () => {
       })) as { _id: string; total: number };
 
       if (paymentOption === "cod") {
-        navigate(`/orders/${order._id}/tracking`, {
-          state: {
-            successMessage: "Cash on delivery order confirmed successfully.",
-          },
+        setCodSuccessData({
+          orderId: order._id,
+          total: order.total,
         });
         return;
       }
@@ -125,7 +125,12 @@ export const DeliveryCheckoutPage = () => {
     ]);
   };
 
-  if (successData) {
+  if (successData || codSuccessData) {
+    const isPrepaidSuccess = Boolean(successData);
+    const paidReference = successData?.paymentRef || "";
+    const confirmedOrderId = successData?.orderId || codSuccessData?.orderId || "";
+    const confirmedTotal = Number(successData?.total || codSuccessData?.total || 0);
+
     return (
       <div className="bg-[#0a0a0a] min-h-screen text-slate-100 pt-32 pb-24 px-4 md:px-8">
         <motion.div
@@ -135,19 +140,30 @@ export const DeliveryCheckoutPage = () => {
           transition={{ duration: 0.35 }}
         >
           <CheckCircle2 className="mx-auto text-[#D4AF37] mb-4" size={56} />
-          <h1 className="text-3xl font-serif text-white mb-2">Payment Successful</h1>
-          <p className="text-gray-300 mb-6">Your prepaid delivery order is confirmed.</p>
+          <h1 className="text-3xl font-serif text-white mb-2">{isPrepaidSuccess ? "Payment Successful" : "Order Confirmed"}</h1>
+          <p className="text-gray-300 mb-6">
+            {isPrepaidSuccess ? "Your prepaid delivery order is confirmed." : "Your cash on delivery order has been confirmed successfully."}
+          </p>
           <div className="mb-6 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-emerald-200 text-sm font-semibold">
-            Payment successfully confirmed.
+            {isPrepaidSuccess ? "Payment successfully confirmed." : "Order successfully confirmed."}
           </div>
           <div className="text-left bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg p-4 mb-6 space-y-2 text-sm">
-            <p>Payment Ref: <span className="text-[#D4AF37]">{successData.paymentRef}</span></p>
-            <p>Order ID: {successData.orderId}</p>
-            <p>Total Paid: {formatLkr(successData.total)}</p>
+            {isPrepaidSuccess && <p>Payment Ref: <span className="text-[#D4AF37]">{paidReference}</span></p>}
+            <p>Order ID: {confirmedOrderId}</p>
+            <p>{isPrepaidSuccess ? "Total Paid" : "Order Total"}: {formatLkr(confirmedTotal)}</p>
+            {!isPrepaidSuccess && <p>Payment Method: Cash on Delivery</p>}
           </div>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button onClick={downloadReceipt} className="px-5 py-3 rounded-lg bg-[#D4AF37] text-black font-bold inline-flex items-center justify-center gap-2">
-              <Download size={16} /> Download Receipt
+            {isPrepaidSuccess && (
+              <button onClick={downloadReceipt} className="px-5 py-3 rounded-lg bg-[#D4AF37] text-black font-bold inline-flex items-center justify-center gap-2">
+                <Download size={16} /> Download Receipt
+              </button>
+            )}
+            <button
+              onClick={() => navigate(`/orders/${confirmedOrderId}/tracking`, { state: { successMessage: "Order successfully confirmed." } })}
+              className="px-5 py-3 rounded-lg border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black inline-flex items-center justify-center gap-2"
+            >
+              Track Order
             </button>
             <Link to="/" className="px-5 py-3 rounded-lg border border-[#3a3a3a] text-white hover:border-[#D4AF37] inline-flex items-center justify-center gap-2">
               <ArrowLeft size={16} /> Back To Home

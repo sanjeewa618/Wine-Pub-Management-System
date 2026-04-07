@@ -32,8 +32,44 @@ const createOrder = asyncHandler(async (req, res) => {
 });
 
 const listOrders = asyncHandler(async (req, res) => {
-  const filter = req.user.role === "admin" ? {} : { userId: req.user._id };
-  const orders = await Order.find(filter).sort({ createdAt: -1 });
+  const role = String(req.user?.role || "").toLowerCase();
+  const filter = role === "admin" || role === "seller" ? {} : { userId: req.user._id };
+  const orders = await Order.find(filter)
+    .populate({ path: "userId", select: "name email role" })
+    .populate({ path: "items.productId", select: "sellerId name productType" })
+    .sort({ createdAt: -1 });
+
+  if (role === "seller") {
+    const sellerId = String(req.user._id);
+
+    const sellerOrders = orders
+      .map((order) => {
+        const sellerItems = (order.items || []).filter((item) => {
+          const itemSellerId = String(item?.productId?.sellerId || "");
+          return itemSellerId === sellerId;
+        });
+
+        if (sellerItems.length === 0) {
+          return null;
+        }
+
+        const sellerTotal = sellerItems.reduce(
+          (sum, item) => sum + Number(item?.price || 0) * Number(item?.quantity || 0),
+          0
+        );
+
+        return {
+          ...order.toObject(),
+          items: sellerItems,
+          sellerTotal,
+        };
+      })
+      .filter(Boolean);
+
+    res.json({ success: true, orders: sellerOrders });
+    return;
+  }
+
   res.json({ success: true, orders });
 });
 

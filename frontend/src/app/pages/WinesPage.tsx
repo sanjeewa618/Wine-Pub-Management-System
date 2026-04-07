@@ -6,6 +6,31 @@ import { useApp } from "../context/AppContext";
 const formatLkr = (value: number) => `LKR ${Number(value || 0).toLocaleString()}`;
 const FALLBACK_PRODUCT_IMAGE = "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&q=80&w=1000";
 
+const formatCategoryLabel = (value: string) => {
+  if (!value) return "Uncategorized";
+  return value
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const getLiquorCategoryKey = (item: { category?: string; productType?: string }) => {
+  const rawValue = String(item.category || item.productType || "Uncategorized").trim();
+  if (!rawValue) {
+    return "Uncategorized";
+  }
+
+  const normalized = rawValue.toLowerCase();
+  if (normalized === "whisky" || normalized === "whiskey") return "Whiskey";
+  if (normalized === "vodka") return "Vodka";
+  if (normalized === "arrack") return "Arrack";
+  if (normalized === "rum") return "Rum";
+  if (normalized === "beer") return "Beer";
+  if (normalized === "wine") return "Wine";
+
+  return rawValue;
+};
+
 export const WinesPage = () => {
   const { products, addToCart } = useApp();
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,21 +50,24 @@ export const WinesPage = () => {
   const [activeCountry, setActiveCountry] = useState("any");
   const [activeType, setActiveType] = useState("all");
 
-  const wineProducts = useMemo(() => products.filter((item) => item.type === "wine"), [products]);
+  const liquorProducts = useMemo(() => products.filter((item) => item.type === "wine"), [products]);
 
   const categories = useMemo(() => {
     const map = new Map<string, number>();
-    wineProducts.forEach((item) => map.set(item.category || "Uncategorized", (map.get(item.category || "Uncategorized") || 0) + 1));
+    liquorProducts.forEach((item) => {
+      const categoryKey = getLiquorCategoryKey(item as { category?: string; productType?: string });
+      map.set(categoryKey, (map.get(categoryKey) || 0) + 1);
+    });
     return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
-  }, [wineProducts]);
+  }, [liquorProducts]);
 
   const categoryScopedProducts = useMemo(() => {
     if (pendingCategory === "all") {
-      return wineProducts;
+      return liquorProducts;
     }
 
-    return wineProducts.filter((item) => item.category === pendingCategory);
-  }, [wineProducts, pendingCategory]);
+    return liquorProducts.filter((item) => getLiquorCategoryKey(item as { category?: string; productType?: string }) === pendingCategory);
+  }, [liquorProducts, pendingCategory]);
 
   const brands = useMemo(() => {
     const set = new Set<string>();
@@ -63,44 +91,44 @@ export const WinesPage = () => {
 
   const countries = useMemo(() => {
     const set = new Set<string>();
-    wineProducts.forEach((item) => {
+    liquorProducts.forEach((item) => {
       if (item.country) {
         set.add(item.country);
       }
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [wineProducts]);
+  }, [liquorProducts]);
 
   const sizeCounts = useMemo(() => {
     const map = new Map<string, number>();
-    wineProducts.forEach((item) => {
+    liquorProducts.forEach((item) => {
       (item.sizes ?? []).forEach((size) => {
         map.set(size, (map.get(size) || 0) + 1);
       });
     });
     return Array.from(map.entries()).map(([size, count]) => ({ size, count }));
-  }, [wineProducts]);
+  }, [liquorProducts]);
 
   const typeCounts = useMemo(() => {
     const map = new Map<string, number>();
-    wineProducts.forEach((item) => {
+    liquorProducts.forEach((item) => {
       const type = item.originType || "Unknown";
       map.set(type, (map.get(type) || 0) + 1);
     });
     return Array.from(map.entries()).map(([type, count]) => ({ type, count }));
-  }, [wineProducts]);
+  }, [liquorProducts]);
 
   const priceBounds = useMemo(() => {
-    if (!wineProducts.length) {
+    if (!liquorProducts.length) {
       return { min: 0, max: 0 };
     }
 
-    const prices = wineProducts.map((item) => item.price);
+    const prices = liquorProducts.map((item) => item.price);
     return {
       min: Math.min(...prices),
       max: Math.max(...prices),
     };
-  }, [wineProducts]);
+  }, [liquorProducts]);
 
   React.useEffect(() => {
     const min = priceBounds.min;
@@ -113,8 +141,9 @@ export const WinesPage = () => {
   }, [priceBounds.min, priceBounds.max]);
 
   const filteredItems = useMemo(() => {
-    return wineProducts.filter((item) => {
-      const byCategory = activeCategory === "all" ? true : item.category === activeCategory;
+    return liquorProducts.filter((item) => {
+      const itemCategory = getLiquorCategoryKey(item as { category?: string; productType?: string });
+      const byCategory = activeCategory === "all" ? true : itemCategory === activeCategory;
       const bySearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
       const byPrice = item.price >= activeMinPrice && item.price <= activeMaxPrice;
       const byBrand = activeBrand === "any" ? true : item.brand === activeBrand;
@@ -124,7 +153,7 @@ export const WinesPage = () => {
 
       return byCategory && bySearch && byPrice && byBrand && bySize && byCountry && byType;
     });
-  }, [wineProducts, activeCategory, searchTerm, activeMinPrice, activeMaxPrice, activeBrand, activeSize, activeCountry, activeType]);
+  }, [liquorProducts, activeCategory, searchTerm, activeMinPrice, activeMaxPrice, activeBrand, activeSize, activeCountry, activeType]);
 
   const applyFilters = () => {
     setActiveMinPrice(pendingMinPrice);
@@ -136,12 +165,12 @@ export const WinesPage = () => {
     setActiveType(pendingType);
   };
 
-  if (wineProducts.length === 0) {
+  if (liquorProducts.length === 0) {
     return (
       <div className="bg-[#0a0a0a] min-h-screen text-slate-100 pt-32 pb-24 px-4 md:px-8">
         <div className="container mx-auto text-center py-20">
-          <h1 className="text-4xl md:text-5xl font-serif text-white font-bold mb-4">Wines & Liquor</h1>
-          <p className="text-gray-400">No wine products found in database. Add a wine product in MongoDB and refresh.</p>
+          <h1 className="text-4xl md:text-5xl font-serif text-white font-bold mb-4">Liquor & Drinks</h1>
+          <p className="text-gray-400">No liquor products found in database. Add a product in MongoDB and refresh.</p>
         </div>
       </div>
     );
@@ -153,7 +182,7 @@ export const WinesPage = () => {
         <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <h1 className="text-4xl md:text-5xl font-serif text-white font-bold">
-              {activeCategory === "all" ? "Wines & Liquor" : activeCategory}
+              {activeCategory === "all" ? "Liquor & Drinks" : formatCategoryLabel(activeCategory)}
             </h1>
             <p className="text-gray-400 mt-2">Products are loaded directly from your MongoDB backend.</p>
           </div>
@@ -166,7 +195,7 @@ export const WinesPage = () => {
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search wine name"
+                  placeholder="Search product name"
                 className="w-full bg-[#0c0f13] border border-[#343c48] rounded-md px-3 py-2 text-[#f3f4f6] placeholder:text-[#7e8795] focus:outline-none focus:border-[#D4AF37]"
               />
             </div>
@@ -198,7 +227,7 @@ export const WinesPage = () => {
                 <div className="space-y-2">
                   <label className="flex items-center justify-between gap-2 text-[#f3f4f6] cursor-pointer">
                     <span className="text-base">All Categories</span>
-                    <span className="text-sm text-[#9ca3af]">({wineProducts.length})</span>
+                    <span className="text-sm text-[#9ca3af]">({liquorProducts.length})</span>
                     <input
                       type="radio"
                       name="category-filter"
@@ -209,7 +238,7 @@ export const WinesPage = () => {
                   </label>
                   {categories.map((cat) => (
                     <label key={cat.name} className="flex items-center justify-between gap-2 text-[#f3f4f6] cursor-pointer">
-                      <span className="text-base">{cat.name}</span>
+                      <span className="text-base">{formatCategoryLabel(cat.name)}</span>
                       <span className="text-sm text-[#9ca3af]">({cat.count})</span>
                       <input
                         type="radio"

@@ -7,7 +7,7 @@ function getProductType(req) {
 }
 
 function getAllowedTypesByRoute(productType) {
-  const wineTypes = ["wine", "arrack", "whiskey", "whisky", "rum", "beer"];
+  const wineTypes = ["wine", "arrack", "whiskey", "whisky", "rum", "vodka", "beer"];
   const biteTypes = ["bite", "food", "beverage"];
 
   return productType === "wine" ? wineTypes : biteTypes;
@@ -76,9 +76,10 @@ const listProducts = asyncHandler(async (req, res) => {
   const filter = {
     productType:
       productType === "wine"
-        ? { $in: ["wine", "arrack", "whiskey", "whisky", "rum", "beer"] }
+        ? { $in: ["wine", "arrack", "whiskey", "whisky", "rum", "vodka", "beer"] }
         : { $in: ["bite", "food", "beverage"] },
     isActive: { $ne: false },
+    sellerId: null,
   };
 
   if (category) filter.category = category;
