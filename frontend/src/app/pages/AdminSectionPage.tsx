@@ -390,7 +390,7 @@ const sectionData: Record<
 
 const statusColorMap = {
   high: "text-red-300 border-red-400/30 bg-red-500/10",
-  medium: "text-[#D4AF37] border-[#D4AF37]/30 bg-[#D4AF37]/10",
+  medium: "text-[#E3C06A] border-[#E3C06A]/30 bg-[#E3C06A]/10",
   low: "text-emerald-300 border-emerald-400/30 bg-emerald-500/10",
 };
 
@@ -1773,19 +1773,19 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => void loadReservationsSectionData()}
-              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
             >
               Refresh Alerts
             </button>
             <button
               onClick={() => void handleAddTable()}
-              className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] transition-colors"
+              className="px-4 py-2 rounded-lg bg-[#E3C06A] text-black text-xs font-bold hover:bg-[#CDA74C] transition-colors"
             >
               Add Table
             </button>
             <button
               onClick={() => void handleAddTimeSlot()}
-              className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] transition-colors"
+              className="px-4 py-2 rounded-lg bg-[#E3C06A] text-black text-xs font-bold hover:bg-[#CDA74C] transition-colors"
             >
               Add Time Slot
             </button>
@@ -1794,13 +1794,13 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => openChangePicker("wine")}
-              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
             >
               Change Items
             </button>
             <button
               onClick={() => openAddProductModal("wine")}
-              className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] transition-colors"
+              className="px-4 py-2 rounded-lg bg-[#E3C06A] text-black text-xs font-bold hover:bg-[#CDA74C] transition-colors"
             >
               Add Wine
             </button>
@@ -1809,13 +1809,13 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => openChangePicker("bite")}
-              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
             >
               Change Items
             </button>
             <button
               onClick={() => openAddProductModal("bite")}
-              className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] transition-colors"
+              className="px-4 py-2 rounded-lg bg-[#E3C06A] text-black text-xs font-bold hover:bg-[#CDA74C] transition-colors"
             >
               Add Item
             </button>
@@ -1824,13 +1824,13 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => void loadOrdersSectionData()}
-              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
             >
               Refresh Orders
             </button>
             <button
               onClick={() => void openCreateOrderModal()}
-              className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] transition-colors"
+              className="px-4 py-2 rounded-lg bg-[#E3C06A] text-black text-xs font-bold hover:bg-[#CDA74C] transition-colors"
             >
               Create Order
             </button>
@@ -1839,7 +1839,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => void loadAnalyticsSectionData()}
-              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
             >
               Refresh Analytics
             </button>
@@ -1855,13 +1855,13 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 setSettingsPasswordError("");
                 setSettingsSecurityError("");
               }}
-              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
             >
               Clear Messages
             </button>
           </div>
         ) : !isUsersSection && (
-          <button className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-sm font-bold hover:bg-[#c39b22] transition-colors w-fit">
+          <button className="px-4 py-2 rounded-lg bg-[#E3C06A] text-black text-sm font-bold hover:bg-[#CDA74C] transition-colors w-fit">
             {data.actionLabel}
           </button>
         )}
@@ -1894,7 +1894,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 handleOutOfStockBitesCardClick();
               }
             }}
-            className={`bg-[#111] border border-[#333] rounded-xl p-5 hover:border-[#D4AF37]/50 transition-colors ${
+            className={`bg-[#111] border border-[#333] rounded-xl p-5 hover:border-[#E3C06A]/50 transition-colors ${
               (isWinesSection && item.label === "Out Of Stock Categories") ||
               (isBitesSection && item.label === "Out Of Stocks")
                 ? "cursor-pointer"
@@ -1903,7 +1903,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
           >
             <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">{item.label}</p>
             <p className="text-3xl font-serif text-white mb-2">{item.value}</p>
-            <p className="text-xs text-[#D4AF37] font-semibold">{item.delta}</p>
+            <p className="text-xs text-[#E3C06A] font-semibold">{item.delta}</p>
           </div>
         ))}
       </div>
@@ -1927,7 +1927,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
             <button
               onClick={() => void loadUsersSectionData()}
               disabled={isLoadingUsers}
-              className="rounded-lg border border-[#D4AF37]/40 bg-[#1a1a1a] px-4 py-2 text-xs font-semibold text-[#D4AF37] hover:text-black hover:bg-[#D4AF37] transition-colors disabled:opacity-60"
+              className="rounded-lg border border-[#E3C06A]/40 bg-[#1a1a1a] px-4 py-2 text-xs font-semibold text-[#E3C06A] hover:text-black hover:bg-[#E3C06A] transition-colors disabled:opacity-60"
             >
               {isLoadingUsers ? "Refreshing..." : "Refresh Data"}
             </button>
@@ -1943,7 +1943,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               const isExpanded = expandedUserId === user._id;
 
               return (
-                <div key={user._id} className="rounded-xl border border-[#2a2a2a] bg-[#151515] p-4 space-y-3 hover:border-[#D4AF37]/35 transition-colors">
+                <div key={user._id} className="rounded-xl border border-[#2a2a2a] bg-[#151515] p-4 space-y-3 hover:border-[#E3C06A]/35 transition-colors">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                     <div>
                       <p className="text-white text-xl font-semibold leading-tight">{user.name}</p>
@@ -1960,10 +1960,10 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       >
                         {user.status}
                       </span>
-                      <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-[#D4AF37] border-[#D4AF37]/30 bg-[#D4AF37]/10">
+                      <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-[#E3C06A] border-[#E3C06A]/30 bg-[#E3C06A]/10">
                         Orders: {userOrders.length}
                       </span>
-                      <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-[#D4AF37] border-[#D4AF37]/30 bg-[#D4AF37]/10">
+                      <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-[#E3C06A] border-[#E3C06A]/30 bg-[#E3C06A]/10">
                         Reservations: {userReservations.length}
                       </span>
 
@@ -1977,7 +1977,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
 
                       <button
                         onClick={() => setExpandedUserId(isExpanded ? null : user._id)}
-                        className="rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-4 py-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors lg:ml-2"
+                        className="rounded-md border border-[#E3C06A]/45 bg-[#E3C06A]/10 px-4 py-1.5 text-xs font-bold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors lg:ml-2"
                       >
                         {isExpanded ? "Hide History" : "View History"}
                       </button>
@@ -2033,7 +2033,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 <button
                   onClick={() => void loadSellersSectionData()}
                   disabled={isLoadingSellers}
-                  className="rounded-lg border border-[#D4AF37]/40 bg-[#1a1a1a] px-4 py-2 text-xs font-semibold text-[#D4AF37] hover:text-black hover:bg-[#D4AF37] transition-colors disabled:opacity-60"
+                  className="rounded-lg border border-[#E3C06A]/40 bg-[#1a1a1a] px-4 py-2 text-xs font-semibold text-[#E3C06A] hover:text-black hover:bg-[#E3C06A] transition-colors disabled:opacity-60"
                 >
                   {isLoadingSellers ? "Refreshing..." : "Refresh Data"}
                 </button>
@@ -2064,20 +2064,20 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     .toUpperCase();
 
                   return (
-                    <div key={seller._id} className="rounded-xl border border-[#2b2b2b] bg-gradient-to-b from-[#171717] to-[#131313] p-5 space-y-4 hover:border-[#D4AF37]/40 transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
+                    <div key={seller._id} className="rounded-xl border border-[#2b2b2b] bg-gradient-to-b from-[#171717] to-[#131313] p-5 space-y-4 hover:border-[#E3C06A]/40 transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                         <div className="flex items-start gap-3">
-                          <div className="h-11 w-11 rounded-lg border border-[#D4AF37]/35 bg-[#D4AF37]/10 text-[#D4AF37] flex items-center justify-center text-sm font-bold tracking-wide">
+                          <div className="h-11 w-11 rounded-lg border border-[#E3C06A]/35 bg-[#E3C06A]/10 text-[#E3C06A] flex items-center justify-center text-sm font-bold tracking-wide">
                             {initials || "SL"}
                           </div>
                           <div>
                             <p className="text-white text-lg font-semibold leading-tight">{seller.name}</p>
-                            <p className="text-xs uppercase tracking-[0.16em] text-[#D4AF37] mt-1">Company Profile</p>
+                            <p className="text-xs uppercase tracking-[0.16em] text-[#E3C06A] mt-1">Company Profile</p>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2 flex-wrap lg:justify-end">
-                          <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-[#D4AF37] border-[#D4AF37]/30 bg-[#D4AF37]/10">
+                          <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-[#E3C06A] border-[#E3C06A]/30 bg-[#E3C06A]/10">
                             {sellerTypeName}
                           </span>
                           <span
@@ -2138,7 +2138,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
 
                         <button
                           onClick={() => setExpandedSellerId(isExpanded ? null : seller._id)}
-                          className="rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-4 py-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors lg:ml-auto"
+                          className="rounded-md border border-[#E3C06A]/45 bg-[#E3C06A]/10 px-4 py-1.5 text-xs font-bold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors lg:ml-auto"
                         >
                           {isExpanded ? "Hide Details" : "View Details"}
                         </button>
@@ -2213,8 +2213,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               </div>
 
               <div
-                className="max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                className="max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #1a1a1a" }}
               >
                 {isLoadingWines && recentLiquorActivities.length === 0 ? (
                   <p className="text-sm text-gray-400">Loading activity stream...</p>
@@ -2226,7 +2226,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       <div key={activity.id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
                         <p className="text-sm text-white font-semibold">{activity.title}</p>
                         <p className="text-xs text-gray-400 mt-1">{activity.detail}</p>
-                        <p className="text-xs text-[#D4AF37] mt-1">{new Date(activity.time).toLocaleString()}</p>
+                        <p className="text-xs text-[#E3C06A] mt-1">{new Date(activity.time).toLocaleString()}</p>
                       </div>
                     ))}
                   </div>
@@ -2240,8 +2240,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 <span className="text-xs text-gray-400">DB synced</span>
               </div>
               <div
-                className="space-y-3 max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                className="space-y-3 max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #1a1a1a" }}
               >
                 {isLoadingWines && wineItems.length === 0 ? (
                   <p className="text-sm text-gray-400">Loading catalog...</p>
@@ -2259,10 +2259,10 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                           {Number(item.stock || 0) <= 0 ? "Out" : `Stock ${item.stock}`}
                         </span>
                       </div>
-                      <p className="text-xs text-[#D4AF37] mt-2">LKR {Number(item.price || 0).toFixed(2)} {item.brand ? `· ${item.brand}` : ""}</p>
+                      <p className="text-xs text-[#E3C06A] mt-2">LKR {Number(item.price || 0).toFixed(2)} {item.brand ? `· ${item.brand}` : ""}</p>
                       <button
                         onClick={() => openEditProductModal("wine", item)}
-                        className="mt-2 rounded-md border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3 py-1.5 text-[11px] font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                        className="mt-2 rounded-md border border-[#E3C06A]/40 bg-[#E3C06A]/10 px-3 py-1.5 text-[11px] font-semibold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
                       >
                         Edit Item
                       </button>
@@ -2278,7 +2278,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               <h2 className="text-white text-lg font-bold">Out Of Stock Items</h2>
               <button
                 onClick={() => setShowOutOfStockList((prev) => !prev)}
-                className="rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-1.5 text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+                className="rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-1.5 text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
               >
                 {showOutOfStockList ? "Hide List" : "Show List"}
               </button>
@@ -2314,8 +2314,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               </div>
 
               <div
-                className="max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                className="max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #1a1a1a" }}
               >
                 {isLoadingBites && recentMenuActivities.length === 0 ? (
                   <p className="text-sm text-gray-400">Loading activity stream...</p>
@@ -2327,7 +2327,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       <div key={activity.id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
                         <p className="text-sm text-white font-semibold">{activity.title}</p>
                         <p className="text-xs text-gray-400 mt-1">{activity.detail}</p>
-                        <p className="text-xs text-[#D4AF37] mt-1">{new Date(activity.time).toLocaleString()}</p>
+                        <p className="text-xs text-[#E3C06A] mt-1">{new Date(activity.time).toLocaleString()}</p>
                       </div>
                     ))}
                   </div>
@@ -2341,8 +2341,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 <span className="text-xs text-gray-400">DB synced</span>
               </div>
               <div
-                className="space-y-3 max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                className="space-y-3 max-h-[440px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #1a1a1a" }}
               >
                 {isLoadingBites && biteItems.length === 0 ? (
                   <p className="text-sm text-gray-400">Loading menu catalog...</p>
@@ -2360,10 +2360,10 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                           {Number(item.stock || 0) <= 0 ? "Out" : `Stock ${item.stock}`}
                         </span>
                       </div>
-                      <p className="text-xs text-[#D4AF37] mt-2">LKR {Number(item.price || 0).toFixed(2)} {item.brand ? `· ${item.brand}` : ""}</p>
+                      <p className="text-xs text-[#E3C06A] mt-2">LKR {Number(item.price || 0).toFixed(2)} {item.brand ? `· ${item.brand}` : ""}</p>
                       <button
                         onClick={() => openEditProductModal("bite", item)}
-                        className="mt-2 rounded-md border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3 py-1.5 text-[11px] font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                        className="mt-2 rounded-md border border-[#E3C06A]/40 bg-[#E3C06A]/10 px-3 py-1.5 text-[11px] font-semibold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
                       >
                         Edit Item
                       </button>
@@ -2379,7 +2379,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               <h2 className="text-white text-lg font-bold">Out Of Stock Items</h2>
               <button
                 onClick={() => setShowOutOfStockBitesList((prev) => !prev)}
-                className="rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-1.5 text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+                className="rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-1.5 text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
               >
                 {showOutOfStockBitesList ? "Hide List" : "Show List"}
               </button>
@@ -2416,8 +2416,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-4">
                 <h3 className="text-sm font-semibold text-white mb-3">Customer Orders Payments</h3>
                 <div
-                  className="space-y-2 max-h-[240px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-                  style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                  className="space-y-2 max-h-[240px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #1a1a1a" }}
                 >
                   {isLoadingPayments && customerPayments.length === 0 ? (
                     <p className="text-xs text-gray-400">Loading payments...</p>
@@ -2432,7 +2432,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                         </p>
                         <button
                           onClick={() => handleViewPaymentReceipt(payment)}
-                          className="mt-2 rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-2.5 py-1 text-[11px] font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                          className="mt-2 rounded-md border border-[#E3C06A]/45 bg-[#E3C06A]/10 px-2.5 py-1 text-[11px] font-semibold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
                         >
                           View Receipt
                         </button>
@@ -2445,8 +2445,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-4">
                 <h3 className="text-sm font-semibold text-white mb-3">Orders To Sellers Payments</h3>
                 <div
-                  className="space-y-2 max-h-[240px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-                  style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                  className="space-y-2 max-h-[240px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #1a1a1a" }}
                 >
                   {isLoadingPayments && sellerPayments.length === 0 ? (
                     <p className="text-xs text-gray-400">Loading payments...</p>
@@ -2461,7 +2461,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                         </p>
                         <button
                           onClick={() => handleViewPaymentReceipt(payment)}
-                          className="mt-2 rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-2.5 py-1 text-[11px] font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                          className="mt-2 rounded-md border border-[#E3C06A]/45 bg-[#E3C06A]/10 px-2.5 py-1 text-[11px] font-semibold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
                         >
                           View Receipt
                         </button>
@@ -2491,8 +2491,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                   <LineChart data={weeklyOrderChartData} margin={{ top: 16, right: 12, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="ordersLineGlow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#D4AF37" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="#D4AF37" stopOpacity={0.05} />
+                        <stop offset="0%" stopColor="#E3C06A" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="#E3C06A" stopOpacity={0.05} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid stroke="#2f2f2f" strokeDasharray="3 3" vertical={false} />
@@ -2515,10 +2515,10 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     <Line
                       type="monotone"
                       dataKey="orders"
-                      stroke="#D4AF37"
+                      stroke="#E3C06A"
                       strokeWidth={3}
-                      dot={{ r: 4, strokeWidth: 2, stroke: "#D4AF37", fill: "#0f0f0f" }}
-                      activeDot={{ r: 6, strokeWidth: 2, stroke: "#D4AF37", fill: "#D4AF37" }}
+                      dot={{ r: 4, strokeWidth: 2, stroke: "#E3C06A", fill: "#0f0f0f" }}
+                      activeDot={{ r: 6, strokeWidth: 2, stroke: "#E3C06A", fill: "#E3C06A" }}
                     />
                     <Line
                       type="monotone"
@@ -2537,8 +2537,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
             <div className="xl:col-span-2 bg-[#111] border border-[#333] rounded-xl p-6">
               <h2 className="text-white text-lg font-bold mb-4">Recent Orders Activities</h2>
               <div
-                className="space-y-3 max-h-[320px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                className="space-y-3 max-h-[320px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #1a1a1a" }}
               >
                 {isLoadingOrders && recentOrderActivities.length === 0 ? (
                   <p className="text-sm text-gray-400">Loading recent activities...</p>
@@ -2549,7 +2549,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     <div key={activity.id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
                       <p className="text-sm text-white font-semibold">{activity.title}</p>
                       <p className="text-xs text-gray-400 mt-1">{activity.detail}</p>
-                      <p className="text-xs text-[#D4AF37] mt-1">{new Date(activity.time).toLocaleString()}</p>
+                      <p className="text-xs text-[#E3C06A] mt-1">{new Date(activity.time).toLocaleString()}</p>
                     </div>
                   ))
                 )}
@@ -2560,8 +2560,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
           <div className="bg-[#111] border border-[#333] rounded-xl p-6">
               <h2 className="text-white text-lg font-bold mb-4">Customer Order Status Tracker</h2>
               <div
-                className="space-y-3 max-h-[620px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+                className="space-y-3 max-h-[620px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #1a1a1a" }}
               >
                 {ordersByType.customerOrders.length === 0 ? (
                   <p className="text-sm text-gray-400">No customer orders found.</p>
@@ -2572,7 +2572,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       <div key={order._id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
                         <p className="text-sm text-white font-semibold">{customerName}</p>
                         <p className="text-xs text-gray-400 mt-1">{order.orderType} · {new Date(order.createdAt).toLocaleString()}</p>
-                        <p className="text-xs text-[#D4AF37] mt-1">Tracking: {order.trackingNumber || "N/A"}</p>
+                        <p className="text-xs text-[#E3C06A] mt-1">Tracking: {order.trackingNumber || "N/A"}</p>
                         <div className="mt-2 flex items-center gap-2">
                           <span className="text-[11px] text-gray-300">Status:</span>
                           <select
@@ -2609,7 +2609,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       cursor={{ fill: "rgba(212,175,55,0.08)" }}
                       contentStyle={{ background: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
                     />
-                    <Line type="monotone" dataKey="revenue" stroke="#D4AF37" strokeWidth={3} dot={{ r: 4, fill: "#D4AF37" }} />
+                    <Line type="monotone" dataKey="revenue" stroke="#E3C06A" strokeWidth={3} dot={{ r: 4, fill: "#E3C06A" }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -2627,7 +2627,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       cursor={{ fill: "rgba(212,175,55,0.08)" }}
                       contentStyle={{ background: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
                     />
-                    <Bar dataKey="count" radius={[6, 6, 0, 0]} fill="#D4AF37" />
+                    <Bar dataKey="count" radius={[6, 6, 0, 0]} fill="#E3C06A" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -2690,7 +2690,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     <button
                       type="button"
                       onClick={() => settingsAvatarInputRef.current?.click()}
-                      className="relative h-20 w-20 rounded-full border-2 border-[#D4AF37] bg-[#171717] hover:opacity-90 transition-opacity"
+                      className="relative h-20 w-20 rounded-full border-2 border-[#E3C06A] bg-[#171717] hover:opacity-90 transition-opacity"
                     >
                       <img
                         src={
@@ -2730,7 +2730,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                   <input
                     value={settingsProfileForm.name}
                     onChange={(event) => setSettingsProfileForm((prev) => ({ ...prev, name: event.target.value }))}
-                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#E3C06A] focus:outline-none"
                     required
                   />
                 </div>
@@ -2741,7 +2741,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     type="email"
                     value={settingsProfileForm.email}
                     onChange={(event) => setSettingsProfileForm((prev) => ({ ...prev, email: event.target.value }))}
-                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#E3C06A] focus:outline-none"
                     required
                   />
                 </div>
@@ -2751,7 +2751,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                   <input
                     value={settingsProfileForm.phone}
                     onChange={(event) => setSettingsProfileForm((prev) => ({ ...prev, phone: event.target.value }))}
-                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#E3C06A] focus:outline-none"
                     placeholder="+9477xxxxxxx"
                   />
                 </div>
@@ -2762,7 +2762,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 <button
                   type="submit"
                   disabled={isSavingSettingsProfile}
-                  className="rounded-lg bg-[#D4AF37] px-4 py-2.5 text-sm font-bold text-black transition-colors hover:bg-[#b6952f] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg bg-[#E3C06A] px-4 py-2.5 text-sm font-bold text-black transition-colors hover:bg-[#CDA74C] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSavingSettingsProfile ? "Saving..." : "Save Account Details"}
                 </button>
@@ -2780,7 +2780,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     type="password"
                     value={settingsPasswordForm.currentPassword}
                     onChange={(event) => setSettingsPasswordForm((prev) => ({ ...prev, currentPassword: event.target.value }))}
-                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#E3C06A] focus:outline-none"
                     required
                   />
                 </div>
@@ -2791,7 +2791,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     type="password"
                     value={settingsPasswordForm.newPassword}
                     onChange={(event) => setSettingsPasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
-                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#E3C06A] focus:outline-none"
                     required
                   />
                 </div>
@@ -2802,7 +2802,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     type="password"
                     value={settingsPasswordForm.confirmPassword}
                     onChange={(event) => setSettingsPasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
-                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                    className="w-full rounded-lg border border-[#333] bg-[#171717] px-3 py-2.5 text-sm text-white focus:border-[#E3C06A] focus:outline-none"
                     required
                   />
                 </div>
@@ -2813,7 +2813,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 <button
                   type="submit"
                   disabled={isSavingSettingsPassword}
-                  className="rounded-lg border border-[#D4AF37] bg-[#171717] px-4 py-2.5 text-sm font-bold text-[#D4AF37] transition-colors hover:bg-[#252018] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg border border-[#E3C06A] bg-[#171717] px-4 py-2.5 text-sm font-bold text-[#E3C06A] transition-colors hover:bg-[#252018] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSavingSettingsPassword ? "Updating..." : "Change Password"}
                 </button>
@@ -2829,7 +2829,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 <button
                   onClick={() => void handleToggleTwoFactor()}
                   disabled={isSavingTwoFactor}
-                  className="rounded-lg border border-[#D4AF37] bg-[#171717] px-4 py-2.5 text-sm font-bold text-[#D4AF37] transition-colors hover:bg-[#252018] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg border border-[#E3C06A] bg-[#171717] px-4 py-2.5 text-sm font-bold text-[#E3C06A] transition-colors hover:bg-[#252018] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSavingTwoFactor
                     ? "Saving..."
@@ -2875,7 +2875,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 </div>
                 <button
                   onClick={() => void loadReservationsSectionData(selectedAvailabilityDate, selectedAvailabilityTime)}
-                  className="rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-1.5 text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+                  className="rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-1.5 text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
                 >
                   Check Availability
                 </button>
@@ -2908,7 +2908,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                         <div>
                           <p className="text-sm text-white font-semibold">{reservation.customerName || reservation.email || "Customer"}</p>
                           <p className="text-xs text-gray-400">{reservation.date} at {reservation.time} • Guests: {reservation.guestCount}</p>
-                          <p className="text-xs text-[#D4AF37] mt-1">Tables: {tableDetails}</p>
+                          <p className="text-xs text-[#E3C06A] mt-1">Tables: {tableDetails}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
@@ -2948,7 +2948,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       <div key={reservation._id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
                         <p className="text-xs text-white font-semibold capitalize">{reservation.status}</p>
                         <p className="text-xs text-gray-400 mt-1">{reservation.date} {reservation.time} • Guests: {reservation.guestCount}</p>
-                        <p className="text-xs text-[#D4AF37] mt-1">Tables: {tableDetails}</p>
+                        <p className="text-xs text-[#E3C06A] mt-1">Tables: {tableDetails}</p>
                       </div>
                     );
                   })
@@ -2965,7 +2965,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Configured Tables ({reservationConfig?.totalTables || 0})</p>
                 <div className="flex flex-wrap gap-2">
                   {(reservationConfig?.tableNumbers || []).map((table) => (
-                    <span key={table} className="px-2 py-1 text-[11px] rounded border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37]">
+                    <span key={table} className="px-2 py-1 text-[11px] rounded border border-[#E3C06A]/30 bg-[#E3C06A]/10 text-[#E3C06A]">
                       {table}
                     </span>
                   ))}
@@ -3011,7 +3011,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 <button
                   onClick={() => void loadPendingSellers()}
                   disabled={isLoadingSellers}
-                  className="w-full rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-2 text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors disabled:opacity-60"
+                  className="w-full rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-2 text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors disabled:opacity-60"
                 >
                   {isLoadingSellers ? "Refreshing..." : "Refresh Pending Requests"}
                 </button>
@@ -3028,7 +3028,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                   <div key={seller._id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-4">
                     <div className="flex items-center justify-between gap-3 mb-2">
                       <h3 className="text-sm font-semibold text-white truncate">{seller.name}</h3>
-                      <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-[#D4AF37] border-[#D4AF37]/30 bg-[#D4AF37]/10">
+                      <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border text-[#E3C06A] border-[#E3C06A]/30 bg-[#E3C06A]/10">
                         {seller.status}
                       </span>
                     </div>
@@ -3054,7 +3054,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 mb-3">{task.detail}</p>
-                    <button className="text-xs font-semibold text-[#D4AF37] hover:text-white transition-colors">
+                    <button className="text-xs font-semibold text-[#E3C06A] hover:text-white transition-colors">
                       Review -&gt;
                     </button>
                   </div>
@@ -3077,7 +3077,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               </div>
               <button
                 onClick={() => setIsCreateOrderModalOpen(false)}
-                className="rounded-md border border-[#3c3c3c] px-3 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+                className="rounded-md border border-[#3c3c3c] px-3 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E3C06A]/60 transition-colors"
               >
                 Close
               </button>
@@ -3089,7 +3089,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-4 lg:col-span-1">
                   <h4 className="text-sm font-semibold text-white mb-3">Registered Sellers</h4>
-                  <div className="space-y-2 max-h-[58vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]">
+                  <div className="space-y-2 max-h-[58vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]">
                     {createOrderSellers.length === 0 ? (
                       <p className="text-xs text-gray-400">No active sellers found.</p>
                     ) : (
@@ -3099,8 +3099,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                           onClick={() => setSelectedCreateOrderSellerId(seller._id)}
                           className={`w-full text-left rounded-lg border p-3 transition-colors ${
                             selectedCreateOrderSellerId === seller._id
-                              ? "border-[#D4AF37]/70 bg-[#D4AF37]/10"
-                              : "border-[#2f2f2f] bg-[#101010] hover:border-[#D4AF37]/40"
+                              ? "border-[#E3C06A]/70 bg-[#E3C06A]/10"
+                              : "border-[#2f2f2f] bg-[#101010] hover:border-[#E3C06A]/40"
                           }`}
                         >
                           <p className="text-sm text-white font-semibold">{seller.name}</p>
@@ -3114,9 +3114,9 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                 <div className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-4 lg:col-span-2">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-sm font-semibold text-white">Seller Items With Quantity</h4>
-                    <span className="text-xs text-[#D4AF37] font-semibold">Selected Qty: {selectedCreateOrderCount}</span>
+                    <span className="text-xs text-[#E3C06A] font-semibold">Selected Qty: {selectedCreateOrderCount}</span>
                   </div>
-                  <div className="space-y-2 max-h-[58vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]">
+                  <div className="space-y-2 max-h-[58vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]">
                     {selectedCreateOrderSellerId === "" ? (
                       <p className="text-xs text-gray-400">Select a seller to view available items.</p>
                     ) : selectedSellerItems.length === 0 ? (
@@ -3142,13 +3142,13 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                               <div className="min-w-0">
                                 <p className="text-sm text-white font-semibold truncate">{item.name}</p>
                                 <p className="text-[11px] text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
-                                <p className="text-[11px] text-[#D4AF37] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {stock}</p>
+                                <p className="text-[11px] text-[#E3C06A] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {stock}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <button
                                 onClick={() => handleCreateOrderQuantityChange(item._id, selectedQty - 1, stock)}
-                                className="h-8 w-8 rounded border border-[#3a3a3a] text-gray-300 hover:text-white hover:border-[#D4AF37]/60"
+                                className="h-8 w-8 rounded border border-[#3a3a3a] text-gray-300 hover:text-white hover:border-[#E3C06A]/60"
                               >
                                 -
                               </button>
@@ -3158,11 +3158,11 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                                 max={stock}
                                 value={selectedQty}
                                 onChange={(event) => handleCreateOrderQuantityChange(item._id, Number(event.target.value || 0), stock)}
-                                className="w-16 rounded border border-[#3a3a3a] bg-[#161616] px-2 py-1 text-center text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                                className="w-16 rounded border border-[#3a3a3a] bg-[#161616] px-2 py-1 text-center text-sm text-white focus:outline-none focus:border-[#E3C06A]"
                               />
                               <button
                                 onClick={() => handleCreateOrderQuantityChange(item._id, selectedQty + 1, stock)}
-                                className="h-8 w-8 rounded border border-[#3a3a3a] text-gray-300 hover:text-white hover:border-[#D4AF37]/60"
+                                className="h-8 w-8 rounded border border-[#3a3a3a] text-gray-300 hover:text-white hover:border-[#E3C06A]/60"
                                 disabled={selectedQty >= stock}
                               >
                                 +
@@ -3178,7 +3178,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     <button
                       onClick={() => void handleAddCreateOrderItemsToCart()}
                       disabled={isAddingCreateOrderToCart || selectedCreateOrderCount === 0}
-                      className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 rounded-lg bg-[#E3C06A] text-black text-xs font-bold hover:bg-[#CDA74C] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {isAddingCreateOrderToCart ? "Confirming..." : "Confirm Order"}
                     </button>
@@ -3202,13 +3202,13 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               </div>
               <button
                 onClick={closeChangePicker}
-                className="rounded-md border border-[#3c3c3c] px-3 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+                className="rounded-md border border-[#3c3c3c] px-3 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E3C06A]/60 transition-colors"
               >
                 Close
               </button>
             </div>
 
-            <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]">
+            <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]">
               {(changePickerMode === "wine" ? wineItems : biteItems).length === 0 ? (
                 <p className="text-sm text-gray-400">
                   No {changePickerMode === "wine" ? "liquor" : "menu"} items found.
@@ -3219,11 +3219,11 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     <div>
                       <p className="text-sm text-white font-semibold">{item.name}</p>
                       <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
-                      <p className="text-xs text-[#D4AF37] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {item.stock}</p>
+                      <p className="text-xs text-[#E3C06A] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {item.stock}</p>
                     </div>
                     <button
                       onClick={() => handlePickItemForEdit(item)}
-                      className="rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-3 py-1.5 text-xs font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                      className="rounded-md border border-[#E3C06A]/45 bg-[#E3C06A]/10 px-3 py-1.5 text-xs font-semibold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
                     >
                       Edit
                     </button>
@@ -3246,3 +3246,4 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     </div>
   );
 };
+

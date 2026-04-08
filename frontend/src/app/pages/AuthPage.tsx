@@ -113,22 +113,22 @@ export const AuthPage = () => {
         <div className="px-6 pt-5">
           <Link
             to="/"
-            className="inline-flex items-center text-sm font-semibold text-[#D4AF37] hover:text-white transition-colors"
+            className="inline-flex items-center text-sm font-semibold text-[#E3C06A] hover:text-white transition-colors"
           >
             &larr; Home
           </Link>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.75fr] min-h-[calc(100vh-56px)]">
           <div className="hidden lg:flex relative border-r border-[#2a2a2a] bg-[radial-gradient(circle_at_20%_20%,rgba(212,175,55,0.20),transparent_40%),radial-gradient(circle_at_75%_30%,rgba(212,175,55,0.35),transparent_45%),linear-gradient(145deg,#121212_0%,#0b0b0b_50%,#151515_100%)] overflow-hidden">
-            <div className="absolute top-20 left-16 h-40 w-40 rounded-full border border-[#D4AF37]/25 bg-[#D4AF37]/8 blur-sm"></div>
-            <div className="absolute bottom-20 right-14 h-56 w-56 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/20 blur-sm"></div>
+            <div className="absolute top-20 left-16 h-40 w-40 rounded-full border border-[#E3C06A]/25 bg-[#E3C06A]/8 blur-sm"></div>
+            <div className="absolute bottom-20 right-14 h-56 w-56 rounded-full border border-[#E3C06A]/30 bg-[#E3C06A]/20 blur-sm"></div>
             <div className="absolute top-1/2 left-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10"></div>
 
             <div className="relative z-10 p-12 self-center w-full">
               <div className="grid grid-cols-2 gap-4 max-w-md mx-auto mb-10">
                 <div className="h-24 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md"></div>
-                <div className="h-24 rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 backdrop-blur-md"></div>
-                <div className="h-24 rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/15 backdrop-blur-md"></div>
+                <div className="h-24 rounded-2xl border border-[#E3C06A]/30 bg-[#E3C06A]/10 backdrop-blur-md"></div>
+                <div className="h-24 rounded-2xl border border-[#E3C06A]/30 bg-[#E3C06A]/15 backdrop-blur-md"></div>
                 <div className="h-24 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md"></div>
               </div>
 
@@ -141,7 +141,7 @@ export const AuthPage = () => {
 
           <div className="p-8 md:p-10">
             <div className="text-center mb-8">
-              <div className="h-16 w-16 bg-[#D4AF37] rounded-full mx-auto flex items-center justify-center mb-4 border border-[#D4AF37]">
+              <div className="h-16 w-16 bg-[#E3C06A] rounded-full mx-auto flex items-center justify-center mb-4 border border-[#E3C06A]">
                 <Wine className="text-black" size={32} />
               </div>
               <h1 className="text-3xl font-serif text-white font-bold mb-2">
@@ -170,7 +170,7 @@ export const AuthPage = () => {
                           role: nextRole,
                         });
                       }}
-                      className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
+                      className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#E3C06A] transition-colors"
                     >
                       <option value="customer">Customer</option>
                       <option value="seller">Seller</option>
@@ -188,7 +188,7 @@ export const AuthPage = () => {
                       required
                       value={formData.name}
                       onChange={(event) => setFormData((prev) => ({ ...prev, name: event.target.value }))}
-                      className="auth-input w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
+                      className="auth-input w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#E3C06A] transition-colors"
                     />
                   </div>
                 </>
@@ -202,7 +202,7 @@ export const AuthPage = () => {
                   required
                   value={formData.email}
                   onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
-                  className="auth-input w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
+                  className="auth-input w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#E3C06A] transition-colors"
                 />
               </div>
 
@@ -215,12 +215,12 @@ export const AuthPage = () => {
                     required
                     value={formData.password}
                     onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
-                    className="auth-input w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 pr-12 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
+                    className="auth-input w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 pr-12 rounded-lg focus:outline-none focus:border-[#E3C06A] transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 px-3 flex items-center text-white hover:text-[#D4AF37] transition-colors"
+                    className="absolute inset-y-0 right-0 px-3 flex items-center text-white hover:text-[#E3C06A] transition-colors"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -236,9 +236,9 @@ export const AuthPage = () => {
               {isLogin && (
                 <div className="flex justify-between items-center text-sm">
                   <label className="flex items-center text-gray-400 cursor-pointer">
-                    <input type="checkbox" className="mr-2 accent-[#D4AF37]" /> Remember me
+                    <input type="checkbox" className="mr-2 accent-[#E3C06A]" /> Remember me
                   </label>
-                  <a href="#" className="text-[#D4AF37] hover:text-white transition-colors">Forgot password?</a>
+                  <a href="#" className="text-[#E3C06A] hover:text-white transition-colors">Forgot password?</a>
                 </div>
               )}
 
@@ -246,7 +246,7 @@ export const AuthPage = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#D4AF37] text-white py-3 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-[#b5952f] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full bg-[#E3C06A] text-black py-3 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-[#CDA74C] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
                 </button>
@@ -262,14 +262,14 @@ export const AuthPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
-                className="h-11 rounded-lg border border-[#333] bg-[#151515] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-colors"
+                className="h-11 rounded-lg border border-[#333] bg-[#151515] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:border-[#E3C06A] hover:text-[#E3C06A] transition-colors"
               >
                 <Chrome size={16} />
                 Sign in with Google
               </button>
               <button
                 type="button"
-                className="h-11 rounded-lg border border-[#333] bg-[#151515] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-colors"
+                className="h-11 rounded-lg border border-[#333] bg-[#151515] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:border-[#E3C06A] hover:text-[#E3C06A] transition-colors"
               >
                 <Facebook size={16} />
                 Sign in with Facebook
@@ -281,7 +281,7 @@ export const AuthPage = () => {
               <button
                 type="button"
                 onClick={() => navigate(`/auth?mode=${isLogin ? "register" : "login"}`)}
-                className="text-[#D4AF37] font-bold hover:text-white transition-colors"
+                className="text-[#E3C06A] font-bold hover:text-white transition-colors"
               >
                 {isLogin ? "Register now" : "Login here"}
               </button>

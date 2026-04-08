@@ -139,7 +139,7 @@ export const ReservationsPage = () => {
                 <div 
                   key={s} 
                   className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-colors ${
-                    step >= s ? "bg-[#D4AF37] border-[#D4AF37] text-white shadow-[0_0_15px_rgba(212,175,55,0.6)]" : "bg-[#111] border-[#333] text-gray-500"
+                    step >= s ? "bg-[#E3C06A] border-[#E3C06A] text-black shadow-[0_0_15px_rgba(227,192,106,0.6)]" : "bg-[#111] border-[#333] text-gray-500"
                   }`}
                 >
                   {s}
@@ -149,12 +149,12 @@ export const ReservationsPage = () => {
 
             {step === 1 && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-                <h2 className="text-2xl font-serif text-[#D4AF37] font-bold mb-6">Reservation Details</h2>
+                <h2 className="text-2xl font-serif text-[#E3C06A] font-bold mb-6">Reservation Details</h2>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-3">
                     <label className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                      <CalendarDays size={16} className="mr-2 text-[#D4AF37]" /> Date
+                      <CalendarDays size={16} className="mr-2 text-[#E3C06A]" /> Date
                     </label>
                     <input 
                       type="date" 
@@ -164,18 +164,18 @@ export const ReservationsPage = () => {
                         setFormData((prev) => ({ ...prev, date: nextDate }));
                         void fetchAvailability(nextDate, formData.time);
                       }}
-                      className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                      className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#E3C06A] transition-colors [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                     />
                   </div>
                   
                   <div className="space-y-3">
                     <label className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                      <Users size={16} className="mr-2 text-[#D4AF37]" /> Number of Guests
+                      <Users size={16} className="mr-2 text-[#E3C06A]" /> Number of Guests
                     </label>
                     <select 
                       value={formData.guests}
                       onChange={(e) => setFormData({...formData, guests: e.target.value})}
-                      className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg appearance-none focus:outline-none focus:border-[#D4AF37] transition-colors cursor-pointer"
+                      className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg appearance-none focus:outline-none focus:border-[#E3C06A] transition-colors cursor-pointer"
                     >
                       {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} Guests</option>)}
                       <option value="9+">9+ Guests (Contact us)</option>
@@ -186,7 +186,7 @@ export const ReservationsPage = () => {
 
                 <div className="space-y-4">
                   <label className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    <Clock size={16} className="mr-2 text-[#D4AF37]" /> Time Slot
+                    <Clock size={16} className="mr-2 text-[#E3C06A]" /> Time Slot
                   </label>
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-8 gap-3">
                     {timeSlots.map((time) => (
@@ -198,8 +198,8 @@ export const ReservationsPage = () => {
                         }}
                         className={`py-3 rounded-lg text-sm font-bold transition-all duration-300 ${
                           formData.time === time 
-                            ? "bg-[#D4AF37] text-black border border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.3)]" 
-                            : "bg-[#1a1a1a] border border-[#333] text-gray-400 hover:border-[#D4AF37]/50 hover:text-white"
+                            ? "bg-[#E3C06A] text-black border border-[#E3C06A] shadow-[0_0_15px_rgba(227,192,106,0.3)]" 
+                            : "bg-[#1a1a1a] border border-[#333] text-gray-400 hover:border-[#E3C06A]/50 hover:text-white"
                         }`}
                       >
                         {time}
@@ -210,7 +210,7 @@ export const ReservationsPage = () => {
 
                 <div className="space-y-3">
                   <label className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    <Users size={16} className="mr-2 text-[#D4AF37]" /> Preferred Tables (Max 2)
+                    <Users size={16} className="mr-2 text-[#E3C06A]" /> Preferred Tables (Max 2)
                   </label>
                   {!formData.date || !formData.time ? (
                     <p className="text-sm text-gray-400">Select date and time first to see available tables.</p>
@@ -232,8 +232,8 @@ export const ReservationsPage = () => {
                               onClick={() => toggleTableSelection(table)}
                               className={`py-2 rounded-lg text-xs font-bold border transition-colors ${
                                 selected
-                                  ? "bg-[#D4AF37] border-[#D4AF37] text-black"
-                                  : "bg-[#1a1a1a] border-[#333] text-gray-200 hover:border-[#D4AF37]/60"
+                                  ? "bg-[#E3C06A] border-[#E3C06A] text-black"
+                                  : "bg-[#1a1a1a] border-[#333] text-gray-200 hover:border-[#E3C06A]/60"
                               }`}
                             >
                               {table}
@@ -252,7 +252,7 @@ export const ReservationsPage = () => {
                   <button 
                     onClick={() => setStep(2)}
                     disabled={!formData.date || !formData.time || formData.tableNumbers.length === 0}
-                    className="w-full bg-[#D4AF37] disabled:bg-[#333] disabled:text-gray-500 text-white py-5 rounded-lg font-bold uppercase tracking-wider hover:bg-[#b5952f] transition-colors"
+                    className="w-full bg-[#E3C06A] disabled:bg-[#333] disabled:text-gray-500 text-black py-5 rounded-lg font-bold uppercase tracking-wider hover:bg-[#CDA74C] transition-colors"
                   >
                     Continue to Contact Details
                   </button>
@@ -263,7 +263,7 @@ export const ReservationsPage = () => {
             {step === 2 && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-serif text-[#D4AF37] font-bold">Contact Details</h2>
+                  <h2 className="text-2xl font-serif text-[#E3C06A] font-bold">Contact Details</h2>
                   <button onClick={() => setStep(1)} className="text-sm text-gray-400 hover:text-white uppercase tracking-wider font-bold">&larr; Back</button>
                 </div>
 
@@ -278,7 +278,7 @@ export const ReservationsPage = () => {
                         type="text" 
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#E3C06A]"
                         placeholder="John Doe"
                       />
                     </div>
@@ -289,7 +289,7 @@ export const ReservationsPage = () => {
                         type="tel" 
                         value={formData.phone}
                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#E3C06A]"
                         placeholder="+1 (234) 567-8900"
                       />
                     </div>
@@ -302,7 +302,7 @@ export const ReservationsPage = () => {
                       type="email" 
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#E3C06A]"
                       placeholder="john@example.com"
                     />
                   </div>
@@ -312,7 +312,7 @@ export const ReservationsPage = () => {
                     <textarea 
                       value={formData.requests}
                       onChange={(e) => setFormData({...formData, requests: e.target.value})}
-                      className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#D4AF37] h-32 resize-none"
+                      className="w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-4 rounded-lg focus:outline-none focus:border-[#E3C06A] h-32 resize-none"
                       placeholder="Anniversary, allergy info, seating preference..."
                     />
                   </div>
@@ -320,7 +320,7 @@ export const ReservationsPage = () => {
                   <div className="pt-6">
                     <button 
                       type="submit"
-                      className="w-full bg-[#D4AF37] text-black py-5 rounded-lg font-bold uppercase tracking-wider hover:bg-[#b5952f] shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-colors"
+                      className="w-full bg-[#E3C06A] text-black py-5 rounded-lg font-bold uppercase tracking-wider hover:bg-[#CDA74C] shadow-[0_0_20px_rgba(227,192,106,0.3)] transition-colors"
                     >
                       Confirm Reservation
                     </button>
@@ -331,8 +331,8 @@ export const ReservationsPage = () => {
 
             {step === 3 && (
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
-                <div className="h-24 w-24 rounded-full bg-[#D4AF37]/20 flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle size={48} className="text-[#D4AF37]" />
+                <div className="h-24 w-24 rounded-full bg-[#E3C06A]/20 flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle size={48} className="text-[#E3C06A]" />
                 </div>
                 <h2 className="text-4xl font-serif text-white font-bold mb-4">Reservation Confirmed!</h2>
                 <p className="text-gray-400 text-lg mb-8 max-w-md mx-auto">
@@ -340,7 +340,7 @@ export const ReservationsPage = () => {
                 </p>
                 <div className="p-6 bg-[#1a1a1a] border border-[#333] rounded-xl inline-block text-left mx-auto max-w-sm w-full">
                   <p className="text-sm text-gray-400 uppercase tracking-widest font-bold mb-2">Booking Reference</p>
-                  <p className="text-2xl text-[#D4AF37] font-mono tracking-widest mb-4">{bookingReference}</p>
+                  <p className="text-2xl text-[#E3C06A] font-mono tracking-widest mb-4">{bookingReference}</p>
                   <p className="text-sm text-gray-300 mb-4">Table(s): {formData.tableNumbers.join(", ")}</p>
                   <button onClick={() => setStep(1)} className="w-full bg-[#333] text-white py-3 rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-[#444] transition-colors">
                     Make Another Booking

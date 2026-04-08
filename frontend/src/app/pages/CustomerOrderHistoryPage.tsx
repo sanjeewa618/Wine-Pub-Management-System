@@ -106,7 +106,7 @@ export const CustomerOrderHistoryPage = () => {
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div />
-        <p className="text-sm font-semibold text-[#D4AF37]">LKR {Number(order.total || 0).toFixed(2)}</p>
+        <p className="text-sm font-semibold text-[#E3C06A]">LKR {Number(order.total || 0).toFixed(2)}</p>
       </div>
 
       <div className="mt-3 flex flex-col gap-2 text-sm text-gray-300">
@@ -158,7 +158,7 @@ export const CustomerOrderHistoryPage = () => {
       {!loading && !errorMessage && (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
           <section className="space-y-4">
-            <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-white"><Truck size={18} className="text-[#D4AF37]" /> Delivery Orders</h2>
+            <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-white"><Truck size={18} className="text-[#E3C06A]" /> Delivery Orders</h2>
             {deliveryOrders.length === 0 ? (
               <div className="rounded-xl border border-[#333] bg-[#111] p-5 text-sm text-gray-400">No delivery orders yet.</div>
             ) : (
@@ -167,7 +167,7 @@ export const CustomerOrderHistoryPage = () => {
           </section>
 
           <section className="space-y-4">
-            <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-white"><Store size={18} className="text-[#D4AF37]" /> Pub Pickup Orders</h2>
+            <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-white"><Store size={18} className="text-[#E3C06A]" /> Pub Pickup Orders</h2>
             {pickupOrders.length === 0 ? (
               <div className="rounded-xl border border-[#333] bg-[#111] p-5 text-sm text-gray-400">No pickup orders yet.</div>
             ) : (
@@ -179,7 +179,7 @@ export const CustomerOrderHistoryPage = () => {
 
       {!loading && !errorMessage && orders.length > 0 && (
         <div className="rounded-xl border border-[#333] bg-[#111] p-4 text-sm text-gray-400 inline-flex items-center gap-2">
-          <Package size={16} className="text-[#D4AF37]" />
+          <Package size={16} className="text-[#E3C06A]" />
           Recent activity updates every 15 seconds.
         </div>
       )}

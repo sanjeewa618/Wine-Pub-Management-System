@@ -180,21 +180,21 @@ export const AdminDashboard = () => {
       title: "Active Reservations",
       value: stats.activeReservations,
       icon: <CalendarDays size={24} />,
-      color: "text-[#D4AF37]",
+      color: "text-[#E3C06A]",
       path: "/admin/reservations",
     },
     {
       title: "Total Orders",
       value: stats.totalOrders,
       icon: <Package size={24} />,
-      color: "text-[#D4AF37]",
+      color: "text-[#E3C06A]",
       path: "/admin/orders",
     },
     {
       title: "Registered Customers",
       value: stats.registeredUsers,
       icon: <Users size={24} />,
-      color: "text-[#D4AF37]",
+      color: "text-[#E3C06A]",
       path: "/admin/users",
     },
   ];
@@ -215,7 +215,7 @@ export const AdminDashboard = () => {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case "reservation":
-        return <CalendarDays size={16} className="text-[#D4AF37]" />;
+        return <CalendarDays size={16} className="text-[#E3C06A]" />;
       case "order":
         return <Package size={16} className="text-green-400" />;
       case "seller":
@@ -233,7 +233,7 @@ export const AdminDashboard = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-white text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#E3C06A]"></div>
           <p className="mt-4">Loading dashboard...</p>
         </div>
       </div>
@@ -249,7 +249,7 @@ export const AdminDashboard = () => {
         </div>
         <button 
           onClick={fetchAdminData}
-          className="bg-[#D4AF37] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#b5952f] transition-colors"
+          className="bg-[#E3C06A] text-black px-4 py-2 rounded text-sm font-bold hover:bg-[#CDA74C] transition-colors"
         >
           Refresh Data
         </button>
@@ -261,7 +261,7 @@ export const AdminDashboard = () => {
           <div
             key={i}
             onClick={() => navigate(stat.path)}
-            className="bg-[#111] border border-[#333] p-6 rounded-xl hover:border-[#D4AF37]/50 transition-all cursor-pointer transform hover:scale-105"
+            className="bg-[#111] border border-[#333] p-6 rounded-xl hover:border-[#E3C06A]/50 transition-all cursor-pointer transform hover:scale-105"
           >
             <div className="flex justify-between items-start mb-4">
               <div className={`p-3 bg-[#1a1a1a] rounded-lg ${stat.color}`}>
@@ -281,7 +281,7 @@ export const AdminDashboard = () => {
             <h3 className="text-lg font-bold text-white">Revenue Analytics (Last 7 Days)</h3>
             <button
               onClick={() => navigate("/admin/analytics")}
-              className="inline-flex items-center gap-2 text-[#D4AF37] hover:text-white text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-2 text-[#E3C06A] hover:text-white text-sm font-semibold transition-colors"
             >
               See More <ArrowRight size={16} />
             </button>
@@ -291,8 +291,8 @@ export const AdminDashboard = () => {
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#D4AF37" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#E3C06A" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#E3C06A" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
@@ -303,7 +303,7 @@ export const AdminDashboard = () => {
                   itemStyle={{ color: '#fff' }}
                   formatter={(value: any) => `$${value.toLocaleString()}`}
                 />
-                <Area type="monotone" dataKey="revenue" stroke="#D4AF37" fillOpacity={1} fill="url(#colorRevenue)" />
+                <Area type="monotone" dataKey="revenue" stroke="#E3C06A" fillOpacity={1} fill="url(#colorRevenue)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

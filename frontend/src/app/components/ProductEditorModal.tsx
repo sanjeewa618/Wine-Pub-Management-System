@@ -299,8 +299,8 @@ export const ProductEditorModal = ({ isOpen, mode, item, isSaving, onClose, onSu
   return (
     <div className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-[2px] flex items-center justify-center p-3 md:p-6">
       <div
-        className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl border border-[#363636] bg-[#121212] p-5 md:p-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#151515] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-        style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #151515" }}
+        className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl border border-[#363636] bg-[#121212] p-5 md:p-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#151515] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+        style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #151515" }}
       >
         <div className="flex items-start justify-between gap-3 mb-5">
           <div>
@@ -314,7 +314,7 @@ export const ProductEditorModal = ({ isOpen, mode, item, isSaving, onClose, onSu
           <button
             onClick={onClose}
             disabled={isSaving}
-            className="rounded-md border border-[#3c3c3c] px-3 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors disabled:opacity-60"
+            className="rounded-md border border-[#3c3c3c] px-3 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E3C06A]/60 transition-colors disabled:opacity-60"
           >
             Close
           </button>
@@ -493,11 +493,11 @@ export const ProductEditorModal = ({ isOpen, mode, item, isSaving, onClose, onSu
 
               <div className="md:col-span-2 rounded-lg border border-[#2e2e2e] bg-[#171717] p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-semibold text-[#D4AF37]">Sizes and Prices</p>
+                  <p className="text-xs font-semibold text-[#E3C06A]">Sizes and Prices</p>
                   <button
                     type="button"
                     onClick={addSizeRow}
-                    className="text-xs rounded border border-[#D4AF37]/40 px-2 py-1 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                    className="text-xs rounded border border-[#E3C06A]/40 px-2 py-1 text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
                   >
                     Add Row
                   </button>
@@ -552,7 +552,7 @@ export const ProductEditorModal = ({ isOpen, mode, item, isSaving, onClose, onSu
               className="w-full rounded-md border border-[#333] bg-[#161616] px-3 py-2 text-sm text-white"
             />
             <div className="mt-2 flex items-center gap-3 flex-wrap">
-              <label className="rounded-md border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3 py-1.5 text-xs font-semibold text-[#D4AF37] cursor-pointer hover:bg-[#D4AF37] hover:text-black transition-colors">
+              <label className="rounded-md border border-[#E3C06A]/40 bg-[#E3C06A]/10 px-3 py-1.5 text-xs font-semibold text-[#E3C06A] cursor-pointer hover:bg-[#E3C06A] hover:text-black transition-colors">
                 Choose Image
                 <input type="file" accept="image/*" onChange={handlePickImage} className="hidden" />
               </label>
@@ -573,7 +573,7 @@ export const ProductEditorModal = ({ isOpen, mode, item, isSaving, onClose, onSu
                 type="checkbox"
                 checked={form.popularInPub}
                 onChange={(event) => updateForm("popularInPub", event.target.checked)}
-                className="accent-[#D4AF37]"
+                className="accent-[#E3C06A]"
               />
               Popular In Pub
             </label>
@@ -582,7 +582,7 @@ export const ProductEditorModal = ({ isOpen, mode, item, isSaving, onClose, onSu
                 type="checkbox"
                 checked={form.isActive}
                 onChange={(event) => updateForm("isActive", event.target.checked)}
-                className="accent-[#D4AF37]"
+                className="accent-[#E3C06A]"
               />
               Active Item
             </label>
@@ -593,14 +593,14 @@ export const ProductEditorModal = ({ isOpen, mode, item, isSaving, onClose, onSu
           <button
             onClick={onClose}
             disabled={isSaving}
-            className="rounded-md border border-[#3c3c3c] px-4 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors disabled:opacity-60"
+            className="rounded-md border border-[#3c3c3c] px-4 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E3C06A]/60 transition-colors disabled:opacity-60"
           >
             Cancel
           </button>
           <button
             onClick={() => void handleSave()}
             disabled={isSaving}
-            className="rounded-md bg-[#D4AF37] px-4 py-2 text-xs font-bold text-black hover:bg-[#c39b22] transition-colors disabled:opacity-60"
+            className="rounded-md bg-[#E3C06A] px-4 py-2 text-xs font-bold text-black hover:bg-[#CDA74C] transition-colors disabled:opacity-60"
           >
             {isSaving ? "Saving..." : item?._id ? "Update Item" : "Add Item"}
           </button>

@@ -44,12 +44,12 @@ export const BitesPage = () => {
         <div className="mb-8 bg-[#111] border border-[#2c2c2c] rounded-2xl p-4 md:p-5 space-y-5">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div>
-              <p className="text-[12px] uppercase tracking-wider text-[#D4AF37] font-bold mb-2">Category</p>
+              <p className="text-[12px] uppercase tracking-wider text-[#E3C06A] font-bold mb-2">Category</p>
               <div className="relative">
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value)}
-                  className="w-full bg-[#0f0f0f] border border-[#333] rounded-lg px-4 py-3 text-white appearance-none cursor-pointer focus:outline-none focus:border-[#D4AF37]"
+                  className="w-full bg-[#0f0f0f] border border-[#333] rounded-lg px-4 py-3 text-white appearance-none cursor-pointer focus:outline-none focus:border-[#E3C06A]"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
@@ -61,13 +61,13 @@ export const BitesPage = () => {
             </div>
 
             <div className="relative lg:col-span-2">
-              <p className="text-[12px] uppercase tracking-wider text-[#D4AF37] font-bold mb-2">Search</p>
+              <p className="text-[12px] uppercase tracking-wider text-[#E3C06A] font-bold mb-2">Search</p>
               <input
                 type="text"
                 placeholder="Search bites..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="w-full bg-[#0f0f0f] border border-[#333] rounded-lg pl-11 pr-4 py-3 text-white focus:outline-none focus:border-[#D4AF37]"
+                className="w-full bg-[#0f0f0f] border border-[#333] rounded-lg pl-11 pr-4 py-3 text-white focus:outline-none focus:border-[#E3C06A]"
               />
               <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
             </div>
@@ -84,15 +84,15 @@ export const BitesPage = () => {
             <motion.div
               key={bite.id}
               variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
-              className="bg-[#111] border border-[#222] rounded-xl overflow-hidden group hover:border-[#D4AF37]/50 transition-colors"
+              className="bg-[#111] border border-[#222] rounded-xl overflow-hidden group hover:border-[#E3C06A]/50 transition-colors"
             >
               <div className="h-56 relative overflow-hidden bg-black">
                 <img src={bite.image} alt={bite.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute top-4 right-4 bg-black/55 border border-[#D4AF37]/35 rounded px-2 py-1 text-xs text-[#D4AF37] flex items-center font-bold">
-                  <Star size={12} className="mr-1 fill-[#D4AF37]" />
+                <div className="absolute top-4 right-4 bg-black/55 border border-[#E3C06A]/35 rounded px-2 py-1 text-xs text-[#E3C06A] flex items-center font-bold">
+                  <Star size={12} className="mr-1 fill-[#E3C06A]" />
                   {bite.rating.toFixed(1)}
                 </div>
-                <div className="absolute bottom-4 left-4 text-xs uppercase tracking-widest bg-[#D4AF37] text-black px-2 py-1 rounded font-bold">
+                <div className="absolute bottom-4 left-4 text-xs uppercase tracking-widest bg-[#E3C06A] text-black px-2 py-1 rounded font-bold">
                   {bite.category}
                 </div>
               </div>
@@ -100,14 +100,14 @@ export const BitesPage = () => {
               <div className="p-5">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <h3 className="text-xl font-bold text-white leading-tight">{bite.name}</h3>
-                  <span className="text-[#D4AF37] font-serif text-2xl">{formatLkr(bite.price)}</span>
+                  <span className="text-[#E3C06A] font-serif text-2xl">{formatLkr(bite.price)}</span>
                 </div>
 
                 {Array.isArray(bite.sizePricing) && bite.sizePricing.length > 0 && (
                   <div className="mb-4 rounded-lg border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-gray-300 space-y-1">
                     {bite.sizePricing.map((entry) => (
                       <p key={`${bite.id}-${entry.size}`}>
-                        <span className="text-[#D4AF37] font-semibold">{entry.size} Price:</span> {formatLkr(entry.price)}
+                        <span className="text-[#E3C06A] font-semibold">{entry.size} Price:</span> {formatLkr(entry.price)}
                       </p>
                     ))}
                   </div>

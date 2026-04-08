@@ -127,7 +127,7 @@ export const SellerOrdersPage = () => {
               .card { max-width: 640px; margin: 0 auto; border: 1px solid #333; border-radius: 16px; padding: 20px; background: #151515; }
               h1 { margin: 0 0 8px; font-size: 24px; }
               p { margin: 6px 0; color: #d1d5db; }
-              .gold { color: #D4AF37; }
+              .gold { color: #E3C06A; }
             </style>
           </head>
           <body>
@@ -217,7 +217,7 @@ export const SellerOrdersPage = () => {
         </div>
         <button
           onClick={() => void loadAlerts()}
-          className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+          className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
         >
           Refresh Alerts
         </button>
@@ -252,8 +252,8 @@ export const SellerOrdersPage = () => {
               <LineChart data={weeklyOrderChartData} margin={{ top: 16, right: 12, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="sellerOrdersLineGlow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#D4AF37" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#D4AF37" stopOpacity={0.05} />
+                    <stop offset="0%" stopColor="#E3C06A" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#E3C06A" stopOpacity={0.05} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="#2f2f2f" strokeDasharray="3 3" vertical={false} />
@@ -266,10 +266,10 @@ export const SellerOrdersPage = () => {
                 <Line
                   type="monotone"
                   dataKey="orders"
-                  stroke="#D4AF37"
+                  stroke="#E3C06A"
                   strokeWidth={3}
-                  dot={{ r: 4, strokeWidth: 2, stroke: "#D4AF37", fill: "#0f0f0f" }}
-                  activeDot={{ r: 6, strokeWidth: 2, stroke: "#D4AF37", fill: "#D4AF37" }}
+                  dot={{ r: 4, strokeWidth: 2, stroke: "#E3C06A", fill: "#0f0f0f" }}
+                  activeDot={{ r: 6, strokeWidth: 2, stroke: "#E3C06A", fill: "#E3C06A" }}
                 />
                 <Line
                   type="monotone"
@@ -288,8 +288,8 @@ export const SellerOrdersPage = () => {
         <div className="xl:col-span-2 bg-[#111] border border-[#333] rounded-xl p-6">
           <h2 className="text-white text-lg font-bold mb-4">Recent Order Activities</h2>
           <div
-            className="space-y-3 max-h-[300px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-            style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+            className="space-y-3 max-h-[300px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+            style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #1a1a1a" }}
           >
             {isLoading && recentOrderActivities.length === 0 ? (
               <p className="text-sm text-gray-400">Loading recent activities...</p>
@@ -300,7 +300,7 @@ export const SellerOrdersPage = () => {
                 <div key={activity.id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
                   <p className="text-sm text-white font-semibold">{activity.title}</p>
                   <p className="text-xs text-gray-400 mt-1">{activity.detail}</p>
-                  <p className="text-xs text-[#D4AF37] mt-1">{new Date(activity.time).toLocaleString()}</p>
+                  <p className="text-xs text-[#E3C06A] mt-1">{new Date(activity.time).toLocaleString()}</p>
                 </div>
               ))
             )}
@@ -334,10 +334,10 @@ export const SellerOrdersPage = () => {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
                 <h2 className="text-base md:text-lg font-semibold text-white truncate">{alert.title}</h2>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border ${isConfirmed ? "text-emerald-300 border-emerald-400/30 bg-emerald-500/10" : "text-[#D4AF37] border-[#D4AF37]/30 bg-[#D4AF37]/10"}`}>
+                  <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border ${isConfirmed ? "text-emerald-300 border-emerald-400/30 bg-emerald-500/10" : "text-[#E3C06A] border-[#E3C06A]/30 bg-[#E3C06A]/10"}`}>
                     {orderStatus}
                   </span>
-                  <span className="text-xs text-[#D4AF37]">{new Date(alert.createdAt).toLocaleString()}</span>
+                  <span className="text-xs text-[#E3C06A]">{new Date(alert.createdAt).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -362,7 +362,7 @@ export const SellerOrdersPage = () => {
                 <button
                   onClick={() => void handleConfirmOrder(alert)}
                   disabled={isConfirmed || isConfirmingOrderId === alert.metadata?.orderId}
-                  className="rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-md border border-[#E3C06A]/45 bg-[#E3C06A]/10 px-4 py-2 text-xs font-bold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isConfirmingOrderId === alert.metadata?.orderId ? "Confirming..." : isConfirmed ? "Confirmed" : "Confirm Order"}
                 </button>
@@ -370,7 +370,7 @@ export const SellerOrdersPage = () => {
                 {alert.metadata?.paymentReference || alert.metadata?.receiptId ? (
                   <button
                     onClick={() => void handleViewReceipt(alert)}
-                    className="rounded-md border border-[#2a2a2a] bg-[#161616] px-4 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+                    className="rounded-md border border-[#2a2a2a] bg-[#161616] px-4 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E3C06A]/60 transition-colors"
                   >
                     View Receipt
                   </button>
@@ -378,7 +378,7 @@ export const SellerOrdersPage = () => {
 
                 <button
                   onClick={() => setExpandedAlertId((prev) => (prev === alert._id ? null : alert._id))}
-                  className="ml-auto inline-flex items-center gap-1 rounded-md border border-[#2a2a2a] bg-[#161616] px-3 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+                  className="ml-auto inline-flex items-center gap-1 rounded-md border border-[#2a2a2a] bg-[#161616] px-3 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E3C06A]/60 transition-colors"
                 >
                   {isExpanded ? "See Less" : "See More"}
                   {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -431,7 +431,7 @@ export const SellerOrdersPage = () => {
                                   {item.rating ? `Rating: ${Number(item.rating).toFixed(1)}` : ""}
                                 </p>
                               </div>
-                              <p className="text-xs text-[#D4AF37]">Qty {Number(item.quantity || 0)} · LKR {Number(item.price || 0).toFixed(2)}</p>
+                              <p className="text-xs text-[#E3C06A]">Qty {Number(item.quantity || 0)} · LKR {Number(item.price || 0).toFixed(2)}</p>
                             </div>
                           </div>
                         ))}
@@ -472,10 +472,10 @@ export const SellerOrdersPage = () => {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
                 <h2 className="text-base md:text-lg font-semibold text-white truncate">{alert.title}</h2>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border ${isConfirmed ? "text-emerald-300 border-emerald-400/30 bg-emerald-500/10" : "text-[#D4AF37] border-[#D4AF37]/30 bg-[#D4AF37]/10"}`}>
+                  <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border ${isConfirmed ? "text-emerald-300 border-emerald-400/30 bg-emerald-500/10" : "text-[#E3C06A] border-[#E3C06A]/30 bg-[#E3C06A]/10"}`}>
                     {orderStatus}
                   </span>
-                  <span className="text-xs text-[#D4AF37]">{new Date(alert.createdAt).toLocaleString()}</span>
+                  <span className="text-xs text-[#E3C06A]">{new Date(alert.createdAt).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -500,7 +500,7 @@ export const SellerOrdersPage = () => {
                 <button
                   onClick={() => void handleConfirmOrder(alert)}
                   disabled={isConfirmed || isConfirmingOrderId === alert.metadata?.orderId}
-                  className="rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-md border border-[#E3C06A]/45 bg-[#E3C06A]/10 px-4 py-2 text-xs font-bold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isConfirmingOrderId === alert.metadata?.orderId ? "Confirming..." : isConfirmed ? "Confirmed" : "Confirm Order"}
                 </button>
@@ -508,7 +508,7 @@ export const SellerOrdersPage = () => {
                 {alert.metadata?.paymentReference || alert.metadata?.receiptId ? (
                   <button
                     onClick={() => void handleViewReceipt(alert)}
-                    className="rounded-md border border-[#2a2a2a] bg-[#161616] px-4 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+                    className="rounded-md border border-[#2a2a2a] bg-[#161616] px-4 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E3C06A]/60 transition-colors"
                   >
                     View Receipt
                   </button>
@@ -516,7 +516,7 @@ export const SellerOrdersPage = () => {
 
                 <button
                   onClick={() => setExpandedAlertId((prev) => (prev === alert._id ? null : alert._id))}
-                  className="ml-auto inline-flex items-center gap-1 rounded-md border border-[#2a2a2a] bg-[#161616] px-3 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+                  className="ml-auto inline-flex items-center gap-1 rounded-md border border-[#2a2a2a] bg-[#161616] px-3 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E3C06A]/60 transition-colors"
                 >
                   {isExpanded ? "See Less" : "See More"}
                   {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -569,7 +569,7 @@ export const SellerOrdersPage = () => {
                                   {item.rating ? `Rating: ${Number(item.rating).toFixed(1)}` : ""}
                                 </p>
                               </div>
-                              <p className="text-xs text-[#D4AF37]">Qty {Number(item.quantity || 0)} · LKR {Number(item.price || 0).toFixed(2)}</p>
+                              <p className="text-xs text-[#E3C06A]">Qty {Number(item.quantity || 0)} · LKR {Number(item.price || 0).toFixed(2)}</p>
                             </div>
                           </div>
                         ))}

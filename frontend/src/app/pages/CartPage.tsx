@@ -74,7 +74,7 @@ export const CartPage = () => {
     return (
       <div className="bg-[#0a0a0a] min-h-screen text-slate-100 flex flex-col items-center justify-center pt-20 px-4">
         <div className="h-24 w-24 bg-[#111] rounded-full flex items-center justify-center mb-6 border border-[#333]">
-          <ShoppingBag size={40} className="text-[#D4AF37]" />
+          <ShoppingBag size={40} className="text-[#E3C06A]" />
         </div>
         <h1 className="text-4xl font-serif text-white font-bold mb-4">Your Cart is Empty</h1>
         <p className="text-gray-400 text-lg mb-8 max-w-md text-center">
@@ -82,7 +82,7 @@ export const CartPage = () => {
         </p>
         <Link 
           to="/wines" 
-          className="px-8 py-4 bg-[#D4AF37] text-black rounded-lg font-bold uppercase tracking-wider hover:bg-[#c39b22] transition-colors"
+          className="px-8 py-4 bg-[#E3C06A] text-black rounded-lg font-bold uppercase tracking-wider hover:bg-[#CDA74C] transition-colors"
         >
           Explore Our Menu
         </Link>
@@ -118,7 +118,7 @@ export const CartPage = () => {
                 <div className="flex-1 text-center sm:text-left">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <span className="text-xs text-[#D4AF37] uppercase tracking-widest font-bold block mb-1">{item.category}</span>
+                      <span className="text-xs text-[#E3C06A] uppercase tracking-widest font-bold block mb-1">{item.category}</span>
                       <h3 className="text-xl font-bold text-white truncate">{item.name}</h3>
                     </div>
                     <span className="text-xl font-serif text-white hidden sm:block">${(item.price * item.quantity).toFixed(2)}</span>
@@ -158,7 +158,7 @@ export const CartPage = () => {
 
           <div className="lg:col-span-1">
             <div className="bg-[#111] border border-[#333] rounded-xl p-8 sticky top-32 shadow-2xl">
-              <h2 className="text-2xl font-serif text-[#D4AF37] font-bold mb-6">Order Summary</h2>
+              <h2 className="text-2xl font-serif text-[#E3C06A] font-bold mb-6">Order Summary</h2>
               
               <div className="space-y-4 mb-6 border-b border-[#333] pb-6">
                 <div className="flex justify-between text-gray-400">
@@ -178,14 +178,14 @@ export const CartPage = () => {
               <div className="space-y-5 mb-7 border-b border-[#333] pb-6">
                 {isSellerPaymentFlow ? (
                   <div>
-                    <p className="text-xs uppercase tracking-widest text-[#D4AF37] mb-2">Payment Mode</p>
+                    <p className="text-xs uppercase tracking-widest text-[#E3C06A] mb-2">Payment Mode</p>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => setSellerPaymentOption("prepaid")}
                         className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${
                           sellerPaymentOption === "prepaid"
-                            ? "bg-[#D4AF37] text-black border-[#D4AF37]"
-                            : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#D4AF37]/60"
+                            ? "bg-[#E3C06A] text-black border-[#E3C06A]"
+                            : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#E3C06A]/60"
                         }`}
                       >
                         Prepayment
@@ -194,8 +194,8 @@ export const CartPage = () => {
                         onClick={() => setSellerPaymentOption("cod")}
                         className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${
                           sellerPaymentOption === "cod"
-                            ? "bg-[#D4AF37] text-black border-[#D4AF37]"
-                            : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#D4AF37]/60"
+                            ? "bg-[#E3C06A] text-black border-[#E3C06A]"
+                            : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#E3C06A]/60"
                         }`}
                       >
                         COD
@@ -205,14 +205,14 @@ export const CartPage = () => {
                 ) : (
                   <>
                     <div>
-                      <p className="text-xs uppercase tracking-widest text-[#D4AF37] mb-2">Order Type</p>
+                      <p className="text-xs uppercase tracking-widest text-[#E3C06A] mb-2">Order Type</p>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => setOrderType("pickup")}
                           className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${
                             orderType === "pickup"
-                              ? "bg-[#D4AF37] text-black border-[#D4AF37]"
-                              : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#D4AF37]/60"
+                              ? "bg-[#E3C06A] text-black border-[#E3C06A]"
+                              : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#E3C06A]/60"
                           }`}
                         >
                           Pub Pickup
@@ -221,8 +221,8 @@ export const CartPage = () => {
                           onClick={() => setOrderType("delivery")}
                           className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${
                             orderType === "delivery"
-                              ? "bg-[#D4AF37] text-black border-[#D4AF37]"
-                              : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#D4AF37]/60"
+                              ? "bg-[#E3C06A] text-black border-[#E3C06A]"
+                              : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#E3C06A]/60"
                           }`}
                         >
                           Home Delivery
@@ -232,12 +232,12 @@ export const CartPage = () => {
 
                     {orderType === "delivery" && (
                       <div>
-                        <p className="text-xs uppercase tracking-widest text-[#D4AF37] mb-2">Delivery Address</p>
+                        <p className="text-xs uppercase tracking-widest text-[#E3C06A] mb-2">Delivery Address</p>
                         <textarea
                           value={address}
                           onChange={(e) => setAddress(e.target.value)}
                           placeholder="Enter full delivery address"
-                          className="w-full min-h-[88px] bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                          className="w-full min-h-[88px] bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#E3C06A]"
                         />
                       </div>
                     )}
@@ -247,13 +247,13 @@ export const CartPage = () => {
               
               <div className="flex justify-between items-end mb-8">
                 <span className="text-lg font-bold text-white">Total</span>
-                <span className="text-4xl font-serif text-[#D4AF37]">${total.toFixed(2)}</span>
+                <span className="text-4xl font-serif text-[#E3C06A]">${total.toFixed(2)}</span>
               </div>
               
               <button
                 onClick={handleCheckout}
                 disabled={!canCheckout}
-                className="w-full bg-[#D4AF37] text-black py-5 rounded-lg font-bold uppercase tracking-wider hover:bg-[#c39b22] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2 group"
+                className="w-full bg-[#E3C06A] text-black py-5 rounded-lg font-bold uppercase tracking-wider hover:bg-[#CDA74C] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2 group"
               >
                 <span>Proceed to Checkout</span>
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />

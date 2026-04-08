@@ -161,7 +161,11 @@ const updateMe = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Name is required");
   }
 
-  if (!NAME_REGEX.test(nextName)) {
+  if (String(user.role || "") === "seller") {
+    if (!SELLER_NAME_REGEX.test(nextName)) {
+      throw new ApiError(400, "Company/Restaurant/Supplier name should be 2-80 characters");
+    }
+  } else if (!NAME_REGEX.test(nextName)) {
     throw new ApiError(400, "Full name should contain only letters and spaces (2-60 characters)");
   }
 

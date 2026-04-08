@@ -9,20 +9,20 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
           <div>
-            <span className="text-2xl font-serif text-[#D4AF37] font-bold tracking-wider mb-4 block">
+            <span className="text-2xl font-serif text-[#E3C06A] font-bold tracking-wider mb-4 block">
               ðŸ· VinoVerse
             </span>
             <p className="text-gray-400 text-sm mb-6 max-w-xs leading-relaxed">
               Sip. Reserve. Experience. The premium destination for wine lovers, offering curated selections, exclusive reservations, and unforgettable nights.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="h-10 w-10 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-colors">
+              <a href="#" className="h-10 w-10 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-[#E3C06A] hover:text-black transition-colors">
                 <Facebook size={18} />
               </a>
-              <a href="#" className="h-10 w-10 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-colors">
+              <a href="#" className="h-10 w-10 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-[#E3C06A] hover:text-black transition-colors">
                 <Instagram size={18} />
               </a>
-              <a href="#" className="h-10 w-10 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-colors">
+              <a href="#" className="h-10 w-10 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-[#E3C06A] hover:text-black transition-colors">
                 <Twitter size={18} />
               </a>
             </div>
@@ -30,7 +30,7 @@ export const Footer = () => {
 
           {/* Company */}
           <div>
-            <h3 className="text-[#D4AF37] font-bold uppercase tracking-wider mb-6">Company</h3>
+            <h3 className="text-[#E3C06A] font-bold uppercase tracking-wider mb-6">Company</h3>
             <ul className="space-y-3">
               <li><Link to="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
               <li><Link to="/wines" className="text-gray-400 hover:text-white transition-colors">Our Wines</Link></li>
@@ -41,18 +41,18 @@ export const Footer = () => {
 
           {/* Support */}
           <div>
-            <h3 className="text-[#D4AF37] font-bold uppercase tracking-wider mb-6">Support</h3>
+            <h3 className="text-[#E3C06A] font-bold uppercase tracking-wider mb-6">Support</h3>
             <ul className="space-y-3 text-gray-400">
               <li className="flex items-start space-x-3">
-                <MapPin size={18} className="text-[#D4AF37] shrink-0 mt-0.5" />
+                <MapPin size={18} className="text-[#E3C06A] shrink-0 mt-0.5" />
                 <span>123 Vineyard Lane, Wine District, NY 10012</span>
               </li>
               <li className="flex items-center space-x-3">
-                <Phone size={18} className="text-[#D4AF37] shrink-0" />
+                <Phone size={18} className="text-[#E3C06A] shrink-0" />
                 <span>+1 (234) 567-8900</span>
               </li>
               <li className="flex items-center space-x-3">
-                <Mail size={18} className="text-[#D4AF37] shrink-0" />
+                <Mail size={18} className="text-[#E3C06A] shrink-0" />
                 <span>hello@vinoverse.com</span>
               </li>
               <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
@@ -62,7 +62,7 @@ export const Footer = () => {
 
           {/* Newsletter */}
           <div>
-            <h3 className="text-[#D4AF37] font-bold uppercase tracking-wider mb-6">Newsletter</h3>
+            <h3 className="text-[#E3C06A] font-bold uppercase tracking-wider mb-6">Newsletter</h3>
             <p className="text-gray-400 text-sm mb-4">
               Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.
             </p>
@@ -71,11 +71,11 @@ export const Footer = () => {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 rounded focus:outline-none focus:border-[#D4AF37] transition-colors"
+                className="bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 rounded focus:outline-none focus:border-[#E3C06A] transition-colors"
               />
               <button
                 type="submit"
-                className="bg-[#D4AF37] hover:bg-[#b5952f] text-white px-4 py-3 rounded font-bold uppercase tracking-wider transition-colors"
+                className="bg-[#E3C06A] hover:bg-[#CDA74C] text-white px-4 py-3 rounded font-bold uppercase tracking-wider transition-colors"
               >
                 Subscribe
               </button>

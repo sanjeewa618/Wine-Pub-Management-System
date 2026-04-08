@@ -162,19 +162,19 @@ export const SellerItemsPage = () => {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsChangePickerOpen(true)}
-            className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+            className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
           >
             Change Items
           </button>
           <button
             onClick={() => setIsAddPickerOpen(true)}
-            className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] transition-colors"
+            className="px-4 py-2 rounded-lg bg-[#E3C06A] text-black text-xs font-bold hover:bg-[#CDA74C] transition-colors"
           >
             Add Items
           </button>
           <button
             onClick={() => void loadSellerItems()}
-            className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#D4AF37] hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+            className="px-4 py-2 rounded-lg border border-[#2a2a2a] bg-[#161616] text-xs font-semibold text-[#E3C06A] hover:text-white hover:border-[#E3C06A]/60 transition-colors"
           >
             Refresh
           </button>
@@ -187,10 +187,10 @@ export const SellerItemsPage = () => {
           { label: "Total Items", value: String(totalItems), delta: "Live from DB" },
           { label: "Ratings", value: averageRating.toFixed(1), delta: "Average item rating" },
         ].map((item) => (
-          <div key={item.label} className="bg-[#111] border border-[#333] rounded-xl p-5 hover:border-[#D4AF37]/50 transition-colors">
+          <div key={item.label} className="bg-[#111] border border-[#333] rounded-xl p-5 hover:border-[#E3C06A]/50 transition-colors">
             <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">{item.label}</p>
             <p className="text-3xl font-serif text-white mb-2">{item.value}</p>
-            <p className="text-xs text-[#D4AF37] font-semibold">{item.delta}</p>
+            <p className="text-xs text-[#E3C06A] font-semibold">{item.delta}</p>
           </div>
         ))}
       </div>
@@ -201,8 +201,8 @@ export const SellerItemsPage = () => {
       <div className="bg-[#111] border border-[#333] rounded-xl p-6">
         <h2 className="text-white text-lg font-bold mb-4">My Item Categories</h2>
         <div
-          className="space-y-4 max-h-[62vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-          style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+          className="space-y-4 max-h-[62vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+          style={{ scrollbarWidth: "thin", scrollbarColor: "#E3C06A #1a1a1a" }}
         >
           {isLoading && items.length === 0 ? (
             <p className="text-sm text-gray-400">Loading your items...</p>
@@ -213,21 +213,21 @@ export const SellerItemsPage = () => {
               <div key={group.category} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-medium text-white">{group.category}</h3>
-                  <span className="text-xs text-[#D4AF37]">{group.items.length} item(s)</span>
+                  <span className="text-xs text-[#E3C06A]">{group.items.length} item(s)</span>
                 </div>
                 <div className="space-y-3">
                   {group.items.map((item) => (
                     <button
                       key={item._id}
                       onClick={() => openEditFlow(item)}
-                      className="w-full text-left rounded-xl border border-[#2a2a2a] bg-[#101010] p-4 hover:border-[#D4AF37]/50 transition-colors"
+                      className="w-full text-left rounded-xl border border-[#2a2a2a] bg-[#101010] p-4 hover:border-[#E3C06A]/50 transition-colors"
                     >
                       <div className="flex items-start gap-4">
                         <img src={item.image || defaultImage} alt={item.name} className="h-18 w-18 rounded-lg object-cover border border-[#2a2a2a]" />
                         <div className="min-w-0">
                           <p className="text-lg text-white font-medium leading-tight line-clamp-1">{item.name}</p>
                           <p className="text-sm text-gray-300 mt-1 uppercase">{item.productType} · {item.category}</p>
-                          <p className="text-base text-[#D4AF37] mt-2 font-medium">LKR {Number(item.price || 0).toFixed(2)}</p>
+                          <p className="text-base text-[#E3C06A] mt-2 font-medium">LKR {Number(item.price || 0).toFixed(2)}</p>
                           <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-gray-300">
                             <span>Stock: {item.stock}</span>
                             <span>Rating: {Number(item.rating || 0).toFixed(1)}</span>
@@ -251,20 +251,20 @@ export const SellerItemsPage = () => {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => openAddFlow("wine")}
-                className="rounded-lg border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3 py-2 text-xs font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                className="rounded-lg border border-[#E3C06A]/40 bg-[#E3C06A]/10 px-3 py-2 text-xs font-semibold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
               >
                 Liquor Item
               </button>
               <button
                 onClick={() => openAddFlow("bite")}
-                className="rounded-lg border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-3 py-2 text-xs font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                className="rounded-lg border border-[#E3C06A]/40 bg-[#E3C06A]/10 px-3 py-2 text-xs font-semibold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
               >
                 Food / Snack / Drink
               </button>
             </div>
             <button
               onClick={() => setIsAddPickerOpen(false)}
-              className="mt-4 w-full rounded-md border border-[#3c3c3c] px-3 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+              className="mt-4 w-full rounded-md border border-[#3c3c3c] px-3 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E3C06A]/60 transition-colors"
             >
               Close
             </button>
@@ -282,12 +282,12 @@ export const SellerItemsPage = () => {
               </div>
               <button
                 onClick={() => setIsChangePickerOpen(false)}
-                className="rounded-md border border-[#3c3c3c] px-3 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#D4AF37]/60 transition-colors"
+                className="rounded-md border border-[#3c3c3c] px-3 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E3C06A]/60 transition-colors"
               >
                 Close
               </button>
             </div>
-            <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]">
+            <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]">
               {items.length === 0 ? (
                 <p className="text-sm text-gray-400">No items found.</p>
               ) : (
@@ -296,11 +296,11 @@ export const SellerItemsPage = () => {
                     <div className="min-w-0">
                       <p className="text-sm text-white font-semibold truncate">{item.name}</p>
                       <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
-                      <p className="text-xs text-[#D4AF37] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {item.stock}</p>
+                      <p className="text-xs text-[#E3C06A] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {item.stock}</p>
                     </div>
                     <button
                       onClick={() => openEditFlow(item)}
-                      className="rounded-md border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-3 py-1.5 text-xs font-semibold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
+                      className="rounded-md border border-[#E3C06A]/45 bg-[#E3C06A]/10 px-3 py-1.5 text-xs font-semibold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
                     >
                       Edit
                     </button>

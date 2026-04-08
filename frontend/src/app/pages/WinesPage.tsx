@@ -191,18 +191,18 @@ export const WinesPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 items-start">
           <aside className="bg-transparent border border-[#2b313b] rounded-xl p-6 text-[#e5e7eb]">
             <div className="mb-5">
-              <p className="text-[12px] font-bold uppercase tracking-wide text-[#D4AF37] mb-2">Search</p>
+              <p className="text-[12px] font-bold uppercase tracking-wide text-[#E3C06A] mb-2">Search</p>
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Search product name"
-                className="w-full bg-[#0c0f13] border border-[#343c48] rounded-md px-3 py-2 text-[#f3f4f6] placeholder:text-[#7e8795] focus:outline-none focus:border-[#D4AF37]"
+                className="w-full bg-[#0c0f13] border border-[#343c48] rounded-md px-3 py-2 text-[#f3f4f6] placeholder:text-[#7e8795] focus:outline-none focus:border-[#E3C06A]"
               />
             </div>
 
             <div className="border-t border-[#2b313b] pt-5 space-y-6">
               <div>
-                <p className="text-[12px] font-bold uppercase tracking-wide text-[#D4AF37] mb-3">Filter by price</p>
+                <p className="text-[12px] font-bold uppercase tracking-wide text-[#E3C06A] mb-3">Filter by price</p>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="number"
@@ -223,7 +223,7 @@ export const WinesPage = () => {
               </div>
 
               <div className="border-t border-[#2b313b] pt-5">
-                <p className="text-[12px] font-bold uppercase tracking-wide text-[#D4AF37] mb-3">Categories</p>
+                <p className="text-[12px] font-bold uppercase tracking-wide text-[#E3C06A] mb-3">Categories</p>
                 <div className="space-y-2">
                   <label className="flex items-center justify-between gap-2 text-[#f3f4f6] cursor-pointer">
                     <span className="text-base">All Categories</span>
@@ -233,7 +233,7 @@ export const WinesPage = () => {
                       name="category-filter"
                       checked={pendingCategory === "all"}
                       onChange={() => setPendingCategory("all")}
-                      className="accent-[#D4AF37]"
+                      className="accent-[#E3C06A]"
                     />
                   </label>
                   {categories.map((cat) => (
@@ -245,7 +245,7 @@ export const WinesPage = () => {
                         name="category-filter"
                         checked={pendingCategory === cat.name}
                         onChange={() => setPendingCategory(cat.name)}
-                        className="accent-[#D4AF37]"
+                        className="accent-[#E3C06A]"
                       />
                     </label>
                   ))}
@@ -253,7 +253,7 @@ export const WinesPage = () => {
               </div>
 
               <div className="border-t border-[#2b313b] pt-5">
-                <p className="text-[12px] font-bold uppercase tracking-wide text-[#D4AF37] mb-3">Filter by Brand</p>
+                <p className="text-[12px] font-bold uppercase tracking-wide text-[#E3C06A] mb-3">Filter by Brand</p>
                 <select
                   value={pendingBrand}
                   onChange={(event) => setPendingBrand(event.target.value)}
@@ -267,7 +267,7 @@ export const WinesPage = () => {
               </div>
 
               <div className="border-t border-[#2b313b] pt-5">
-                <p className="text-[12px] font-bold uppercase tracking-wide text-[#D4AF37] mb-3">Filter by Size</p>
+                <p className="text-[12px] font-bold uppercase tracking-wide text-[#E3C06A] mb-3">Filter by Size</p>
                 <div className="space-y-2">
                   <label className="flex items-center justify-between gap-2 cursor-pointer">
                     <span className="text-base">All Sizes</span>
@@ -276,7 +276,7 @@ export const WinesPage = () => {
                       name="size-filter"
                       checked={pendingSize === "all"}
                       onChange={() => setPendingSize("all")}
-                      className="accent-[#D4AF37]"
+                      className="accent-[#E3C06A]"
                     />
                   </label>
                   {sizeCounts.map((entry) => (
@@ -288,7 +288,7 @@ export const WinesPage = () => {
                         name="size-filter"
                         checked={pendingSize === entry.size}
                         onChange={() => setPendingSize(entry.size)}
-                        className="accent-[#D4AF37]"
+                        className="accent-[#E3C06A]"
                       />
                     </label>
                   ))}
@@ -296,7 +296,7 @@ export const WinesPage = () => {
               </div>
 
               <div className="border-t border-[#2b313b] pt-5">
-                <p className="text-[12px] font-bold uppercase tracking-wide text-[#D4AF37] mb-3">Country of Origin</p>
+                <p className="text-[12px] font-bold uppercase tracking-wide text-[#E3C06A] mb-3">Country of Origin</p>
                 <select
                   value={pendingCountry}
                   onChange={(event) => setPendingCountry(event.target.value)}
@@ -310,7 +310,7 @@ export const WinesPage = () => {
               </div>
 
               <div className="border-t border-[#2b313b] pt-5">
-                <p className="text-[12px] font-bold uppercase tracking-wide text-[#D4AF37] mb-3">Filter by Type</p>
+                <p className="text-[12px] font-bold uppercase tracking-wide text-[#E3C06A] mb-3">Filter by Type</p>
                 <div className="space-y-2">
                   <label className="flex items-center justify-between gap-2 cursor-pointer">
                     <span className="text-base">All Types</span>
@@ -319,7 +319,7 @@ export const WinesPage = () => {
                       name="type-filter"
                       checked={pendingType === "all"}
                       onChange={() => setPendingType("all")}
-                      className="accent-[#D4AF37]"
+                      className="accent-[#E3C06A]"
                     />
                   </label>
                   {typeCounts.map((entry) => (
@@ -331,7 +331,7 @@ export const WinesPage = () => {
                         name="type-filter"
                         checked={pendingType === entry.type}
                         onChange={() => setPendingType(entry.type)}
-                        className="accent-[#D4AF37]"
+                        className="accent-[#E3C06A]"
                       />
                     </label>
                   ))}
@@ -341,7 +341,7 @@ export const WinesPage = () => {
               <div className="border-t border-[#2b313b] pt-5">
                 <button
                   onClick={applyFilters}
-                  className="w-full bg-[#D4AF37] text-black text-sm font-semibold rounded-md px-4 py-2.5 hover:bg-[#e7c560] transition-colors"
+                  className="w-full bg-[#E3C06A] text-black text-sm font-semibold rounded-md px-4 py-2.5 hover:bg-[#CDA74C] transition-colors"
                 >
                   Apply Filters
                 </button>
@@ -356,7 +356,7 @@ export const WinesPage = () => {
                   setPendingCategory("all");
                   setActiveCategory("all");
                 }}
-                className="inline-flex items-center text-sm text-[#D4AF37] hover:text-white transition-colors mb-4"
+                className="inline-flex items-center text-sm text-[#E3C06A] hover:text-white transition-colors mb-4"
               >
                 <ArrowLeft size={15} className="mr-2" /> Back to All Wines
               </button>
@@ -372,7 +372,7 @@ export const WinesPage = () => {
                 <motion.div
                   key={item.id}
                   variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
-                  className="bg-[#111] border border-[#222] rounded-xl overflow-hidden group hover:border-[#D4AF37]/50 transition-colors"
+                  className="bg-[#111] border border-[#222] rounded-xl overflow-hidden group hover:border-[#E3C06A]/50 transition-colors"
                 >
                   <div className="h-52 relative overflow-hidden bg-black">
                     <img
@@ -385,19 +385,19 @@ export const WinesPage = () => {
                       }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute top-3 right-3 bg-black/55 border border-[#D4AF37]/35 rounded px-2 py-1 text-xs text-[#D4AF37] flex items-center font-bold">
-                      <Star size={12} className="mr-1 fill-[#D4AF37]" />
+                    <div className="absolute top-3 right-3 bg-black/55 border border-[#E3C06A]/35 rounded px-2 py-1 text-xs text-[#E3C06A] flex items-center font-bold">
+                      <Star size={12} className="mr-1 fill-[#E3C06A]" />
                       {item.rating.toFixed(1)}
                     </div>
                     {item.alcohol && (
-                      <div className="absolute bottom-3 left-3 text-xs uppercase tracking-widest bg-[#D4AF37] text-black px-2 py-1 rounded font-bold">
+                      <div className="absolute bottom-3 left-3 text-xs uppercase tracking-widest bg-[#E3C06A] text-black px-2 py-1 rounded font-bold">
                         {item.alcohol}
                       </div>
                     )}
                   </div>
 
                   <div className="p-5">
-                    <p className="text-xs text-[#D4AF37] uppercase tracking-widest font-semibold mb-2">{item.category}</p>
+                    <p className="text-xs text-[#E3C06A] uppercase tracking-widest font-semibold mb-2">{item.category}</p>
                     <h3 className="text-3xl font-bold text-white leading-tight mb-3">{item.name}</h3>
                     <p className="text-gray-400 text-sm mb-4 min-h-[40px]">{item.description}</p>
 

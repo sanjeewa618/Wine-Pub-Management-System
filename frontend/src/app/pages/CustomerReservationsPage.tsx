@@ -99,7 +99,7 @@ export const CustomerReservationsPage = () => {
         <p className="mt-2 text-sm text-gray-400">
           Reservations are shown in local date/time and auto-refresh every 15 seconds.
         </p>
-        <div className="mt-4 inline-flex rounded-lg border border-[#3a3a3a] bg-[#171717] px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[#D4AF37]">
+        <div className="mt-4 inline-flex rounded-lg border border-[#3a3a3a] bg-[#171717] px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[#E3C06A]">
           Upcoming bookings: {upcomingCount}
         </div>
       </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useApp } from "../context/AppContext";
 import { Package, DollarSign, Star, Wine, RefreshCw, Plus } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { apiRequest } from "../services/api";
 
 export const SellerDashboard = () => {
@@ -102,7 +102,8 @@ export const SellerDashboard = () => {
         sales: Math.round(sales),
       }))
       .sort((a, b) => b.sales - a.sales)
-      .slice(0, 8);
+      .slice(0, 8)
+      .reverse();
   }, [sellerOrders]);
 
   const topSellingItems = useMemo(() => {
@@ -151,13 +152,13 @@ export const SellerDashboard = () => {
         <div className="mt-4 md:mt-0 flex items-center gap-2">
           <button
             onClick={() => void loadSellerDashboardData()}
-            className="bg-[#1a1a1a] border border-[#333] text-white px-4 py-2 rounded font-bold uppercase tracking-wider text-xs hover:border-[#D4AF37] hover:text-[#D4AF37] transition-colors inline-flex items-center"
+            className="bg-[#1a1a1a] border border-[#333] text-white px-4 py-2 rounded font-bold uppercase tracking-wider text-xs hover:border-[#E3C06A] hover:text-[#E3C06A] transition-colors inline-flex items-center"
           >
             <RefreshCw size={14} className="mr-2" /> Refresh
           </button>
           <button
             onClick={() => navigate("/seller/wines")}
-            className="bg-[#D4AF37] text-black px-5 py-2 rounded font-bold uppercase tracking-wider text-xs hover:bg-[#b5952f] transition-colors inline-flex items-center"
+            className="bg-[#E3C06A] text-black px-5 py-2 rounded font-bold uppercase tracking-wider text-xs hover:bg-[#CDA74C] transition-colors inline-flex items-center"
           >
             <Plus size={14} className="mr-2" /> Add New Item
           </button>
@@ -177,7 +178,7 @@ export const SellerDashboard = () => {
             value: String(totalItems),
             change: isLoading ? "Updating..." : "Live",
             icon: <Wine size={24} />,
-            color: "text-[#D4AF37]",
+            color: "text-[#E3C06A]",
           },
           {
             title: "Total Revenue",
@@ -191,20 +192,20 @@ export const SellerDashboard = () => {
             value: String(bottlesSold),
             change: isLoading ? "Updating..." : "Live",
             icon: <Package size={24} />,
-            color: "text-[#D4AF37]",
+            color: "text-[#E3C06A]",
           },
           {
             title: "Avg Rating",
             value: averageRating.toFixed(1),
             change: isLoading ? "Updating..." : "Live",
             icon: <Star size={24} />,
-            color: "text-[#D4AF37]",
+            color: "text-[#E3C06A]",
           },
         ].map((stat, i) => (
-          <div key={i} className="bg-[#111] border border-[#333] p-6 rounded-xl hover:border-[#D4AF37]/50 transition-colors">
+          <div key={i} className="bg-[#111] border border-[#333] p-6 rounded-xl hover:border-[#E3C06A]/50 transition-colors">
             <div className="flex justify-between items-start mb-4">
               <div className={`p-3 bg-[#1a1a1a] rounded-lg ${stat.color}`}>{stat.icon}</div>
-              <span className="text-xs font-bold px-2 py-1 rounded bg-[#1a1a1a] border border-[#333] text-[#D4AF37]">
+              <span className="text-xs font-bold px-2 py-1 rounded bg-[#1a1a1a] border border-[#333] text-[#E3C06A]">
                 {stat.change}
               </span>
             </div>
@@ -219,16 +220,16 @@ export const SellerDashboard = () => {
           <h3 className="text-lg font-bold text-white mb-6">Total Weekly Sales (Category Wise)</h3>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklySalesByCategory}>
+              <LineChart data={weeklySalesByCategory}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                <XAxis dataKey="name" stroke="#666" tick={{fill: '#666'}} axisLine={false} />
-                <YAxis stroke="#666" tick={{fill: '#666'}} axisLine={false} />
+                <XAxis dataKey="name" stroke="#666" tick={{ fill: "#666" }} axisLine={false} />
+                <YAxis stroke="#666" tick={{ fill: "#666" }} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#111', borderColor: '#333', color: '#fff' }}
-                  cursor={{fill: '#1a1a1a'}}
+                  contentStyle={{ backgroundColor: "#111", borderColor: "#333", color: "#fff" }}
+                  cursor={{ fill: "#1a1a1a" }}
                 />
-                <Bar dataKey="sales" fill="#D4AF37" radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <Line type="monotone" dataKey="sales" stroke="#E3C06A" strokeWidth={3} dot={{ r: 4 }} />
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -257,7 +258,7 @@ export const SellerDashboard = () => {
           </div>
           <button
             onClick={() => navigate("/seller/wines")}
-            className="w-full mt-6 bg-[#1a1a1a] border border-[#333] text-white py-3 rounded text-sm hover:border-[#D4AF37] hover:text-[#D4AF37] transition-colors"
+            className="w-full mt-6 bg-[#1a1a1a] border border-[#333] text-white py-3 rounded text-sm hover:border-[#E3C06A] hover:text-[#E3C06A] transition-colors"
           >
             View My Items
           </button>

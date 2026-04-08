@@ -53,7 +53,7 @@ export const LandingPage = () => {
               className="text-5xl md:text-7xl font-serif text-white font-bold leading-tight mb-6 tracking-wide text-left"
             >
               Reserve Your <br />
-              <span className="text-[#D4AF37]">Perfect Night</span><br />
+              <span className="text-[#E3C06A]">Perfect Night</span><br />
               with Premium<br />
               Wines
             </motion.h1>
@@ -66,13 +66,13 @@ export const LandingPage = () => {
             <motion.div variants={slideInLeft} className="flex flex-col sm:flex-row items-start justify-start space-y-4 sm:space-y-0 sm:space-x-6">
               <Link 
                 to="/wines" 
-                className="w-full sm:w-auto px-7 py-3 bg-[#0a0a0a]/50 backdrop-blur-sm border border-[#D4AF37] text-[#D4AF37] rounded font-bold uppercase tracking-wider hover:bg-[#D4AF37] hover:text-black transition-all duration-300 text-xs md:text-sm flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3 bg-[#0a0a0a]/50 backdrop-blur-sm border border-[#E3C06A] text-[#E3C06A] rounded font-bold uppercase tracking-wider hover:bg-[#E3C06A] hover:text-black transition-all duration-300 text-xs md:text-sm flex items-center justify-center gap-2"
               >
                 EXPLORE WINES -&gt;
               </Link>
               <Link 
                 to="/reservations" 
-                className="w-full sm:w-auto px-7 py-3 bg-[#D4AF37] text-black rounded font-bold uppercase tracking-wider hover:bg-[#c39b22] transition-all duration-300 text-xs md:text-sm flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3 bg-[#E3C06A] text-black rounded font-bold uppercase tracking-wider hover:bg-[#CDA74C] transition-all duration-300 text-xs md:text-sm flex items-center justify-center gap-2"
               >
                 RESERVE A TABLE -&gt;
               </Link>
@@ -100,9 +100,9 @@ export const LandingPage = () => {
               <motion.div 
                 key={i} 
                 variants={fadeIn}
-                className="bg-[#111] border border-[#222] p-8 rounded-xl hover:border-[#D4AF37]/50 transition-colors group text-center"
+                className="bg-[#111] border border-[#222] p-8 rounded-xl hover:border-[#E3C06A]/50 transition-colors group text-center"
               >
-                <div className="text-[#D4AF37] mb-6 inline-flex justify-center group-hover:scale-110 transition-transform duration-300">
+                <div className="text-[#E3C06A] mb-6 inline-flex justify-center group-hover:scale-110 transition-transform duration-300">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-white">{feature.title}</h3>
@@ -118,10 +118,10 @@ export const LandingPage = () => {
         <div className="container mx-auto px-4 md:px-8">
           <div className="flex justify-between items-end mb-12">
             <div>
-              <h2 className="text-sm font-bold tracking-widest text-[#D4AF37] uppercase mb-2">Trending Now</h2>
+              <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-2">Trending Now</h2>
               <h3 className="text-4xl md:text-5xl font-serif text-white font-bold">Popular Wines</h3>
             </div>
-            <Link to="/wines" className="hidden md:flex items-center text-[#D4AF37] hover:text-white transition-colors text-sm font-bold uppercase tracking-wider">
+            <Link to="/wines" className="hidden md:flex items-center text-[#E3C06A] hover:text-white transition-colors text-sm font-bold uppercase tracking-wider">
               View All <ArrowRight size={16} className="ml-2" />
             </Link>
           </div>
@@ -138,14 +138,14 @@ export const LandingPage = () => {
                 <div className="relative h-64 overflow-hidden">
                   <img src={wine.image} alt={wine.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] to-transparent"></div>
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-xs text-[#D4AF37] font-bold flex items-center border border-[#D4AF37]/30">
-                    <Star size={12} className="mr-1 fill-[#D4AF37]" /> {wine.rating}
+                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-xs text-[#E3C06A] font-bold flex items-center border border-[#E3C06A]/30">
+                    <Star size={12} className="mr-1 fill-[#E3C06A]" /> {wine.rating}
                   </div>
                 </div>
                 <div className="p-6">
                   <span className="text-xs text-gray-400 uppercase tracking-wider mb-2 block">{wine.category}</span>
                   <h4 className="text-lg font-bold text-white mb-2 truncate">{wine.name}</h4>
-                  <p className="text-[#D4AF37] font-serif text-xl mb-6">${wine.price}</p>
+                  <p className="text-[#E3C06A] font-serif text-xl mb-6">${wine.price}</p>
                   <button 
                     onClick={() => addToCart(wine, wine.sizes?.[0])}
                     className="w-full bg-transparent hover:bg-white/5 border border-[#2c313f] text-white py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
@@ -174,16 +174,16 @@ export const LandingPage = () => {
             viewport={{ once: true }}
             variants={fadeIn}
           >
-            <h2 className="text-sm font-bold tracking-widest text-[#D4AF37] uppercase mb-4">VIP Experience</h2>
+            <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-4">VIP Experience</h2>
             <h3 className="text-4xl md:text-6xl font-serif text-white font-bold mb-6 leading-tight">Plan Your Evening <br />with Us</h3>
             <ul className="space-y-4 mb-10 text-gray-300">
-              <li className="flex items-center"><div className="h-2 w-2 rounded-full bg-[#D4AF37] mr-3"></div> Choose your perfect date & time</li>
-              <li className="flex items-center"><div className="h-2 w-2 rounded-full bg-[#D4AF37] mr-3"></div> Select your preferred table location</li>
-              <li className="flex items-center"><div className="h-2 w-2 rounded-full bg-[#D4AF37] mr-3"></div> Receive instant digital confirmation</li>
+              <li className="flex items-center"><div className="h-2 w-2 rounded-full bg-[#E3C06A] mr-3"></div> Choose your perfect date & time</li>
+              <li className="flex items-center"><div className="h-2 w-2 rounded-full bg-[#E3C06A] mr-3"></div> Select your preferred table location</li>
+              <li className="flex items-center"><div className="h-2 w-2 rounded-full bg-[#E3C06A] mr-3"></div> Receive instant digital confirmation</li>
             </ul>
             <Link 
               to="/reservations" 
-              className="inline-block px-10 py-4 bg-[#D4AF37] text-black rounded font-bold uppercase tracking-wider hover:bg-[#c39b22] transition-colors"
+              className="inline-block px-10 py-4 bg-[#E3C06A] text-black rounded font-bold uppercase tracking-wider hover:bg-[#CDA74C] transition-colors"
             >
               BOOK NOW -&gt;
             </Link>
@@ -194,7 +194,7 @@ export const LandingPage = () => {
       {/* 5. HOW IT WORKS */}
       <section className="py-24 bg-[#111] border-t border-[#222]">
         <div className="container mx-auto px-4 md:px-8 text-center">
-          <h2 className="text-sm font-bold tracking-widest text-[#D4AF37] uppercase mb-2">Simple Process</h2>
+          <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-2">Simple Process</h2>
           <h3 className="text-4xl md:text-5xl font-serif text-white font-bold mb-16">How It Works</h3>
           
           <motion.div 
@@ -210,10 +210,10 @@ export const LandingPage = () => {
               { step: "3", title: "Order & Enjoy 🍽️", desc: "Pre-order your drinks or simply arrive and experience true luxury." },
             ].map((item, i) => (
               <motion.div key={i} variants={fadeIn} className="relative">
-                <div className="h-16 w-16 mx-auto bg-[#1a1a1a] border border-[#333] rounded-full flex items-center justify-center text-2xl font-bold text-[#D4AF37] mb-6 relative z-10">
+                <div className="h-16 w-16 mx-auto bg-[#1a1a1a] border border-[#333] rounded-full flex items-center justify-center text-2xl font-bold text-[#E3C06A] mb-6 relative z-10">
                   {item.step}
                 </div>
-                {i !== 2 && <div className="hidden md:block absolute top-8 left-[60%] right-[-40%] h-px bg-gradient-to-r from-[#D4AF37]/50 to-transparent border-t border-dashed border-[#D4AF37]/50"></div>}
+                {i !== 2 && <div className="hidden md:block absolute top-8 left-[60%] right-[-40%] h-px bg-gradient-to-r from-[#E3C06A]/50 to-transparent border-t border-dashed border-[#E3C06A]/50"></div>}
                 <h4 className="text-xl font-bold text-white mb-4">{item.title}</h4>
                 <p className="text-gray-400 leading-relaxed text-sm px-4">{item.desc}</p>
               </motion.div>
@@ -225,7 +225,7 @@ export const LandingPage = () => {
       {/* 6. CUSTOMER REVIEWS */}
       <section className="py-24 bg-[#0a0a0a]">
         <div className="container mx-auto px-4 md:px-8">
-          <h2 className="text-sm font-bold tracking-widest text-[#D4AF37] uppercase mb-2 text-center">Testimonials</h2>
+          <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-2 text-center">Testimonials</h2>
           <h3 className="text-4xl md:text-5xl font-serif text-white font-bold mb-16 text-center">What Our Guests Say</h3>
           
           <motion.div 
@@ -241,8 +241,8 @@ export const LandingPage = () => {
               { name: "Sophia Lin", text: "The truffle fries paired with the Château Margaux is an out-of-this-world experience." },
             ].map((review, i) => (
               <motion.div key={i} variants={fadeIn} className="bg-[#111] p-8 rounded-xl border border-[#222]">
-                <div className="flex text-[#D4AF37] mb-6">
-                  {[...Array(5)].map((_, idx) => <Star key={idx} size={16} className="fill-[#D4AF37]" />)}
+                <div className="flex text-[#E3C06A] mb-6">
+                  {[...Array(5)].map((_, idx) => <Star key={idx} size={16} className="fill-[#E3C06A]" />)}
                 </div>
                 <p className="text-gray-300 italic mb-8 leading-relaxed text-sm">"{review.text}"</p>
                 <div className="flex items-center space-x-4">
@@ -275,7 +275,7 @@ export const LandingPage = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-sm font-bold tracking-widest text-[#D4AF37] uppercase mb-4">Our Story</h2>
+              <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-4">Our Story</h2>
               <h3 className="text-4xl md:text-5xl font-serif text-white font-bold mb-8">Crafting Unforgettable Nights</h3>
               <p className="text-gray-400 leading-relaxed mb-6">
                 Founded with a passion for exceptional viticulture and refined hospitality, VinoVerse is more than just a pub—it's an experience. We source our collection directly from the world's most prestigious vineyards to bring you unparalleled quality.
@@ -285,15 +285,15 @@ export const LandingPage = () => {
               </p>
               <div className="flex space-x-6">
                 <div>
-                  <h4 className="text-3xl font-serif text-[#D4AF37] mb-2">500+</h4>
+                  <h4 className="text-3xl font-serif text-[#E3C06A] mb-2">500+</h4>
                   <p className="text-sm text-gray-500 uppercase tracking-widest font-bold">Wines</p>
                 </div>
                 <div>
-                  <h4 className="text-3xl font-serif text-[#D4AF37] mb-2">50+</h4>
+                  <h4 className="text-3xl font-serif text-[#E3C06A] mb-2">50+</h4>
                   <p className="text-sm text-gray-500 uppercase tracking-widest font-bold">Partners</p>
                 </div>
                 <div>
-                  <h4 className="text-3xl font-serif text-[#D4AF37] mb-2">5k+</h4>
+                  <h4 className="text-3xl font-serif text-[#E3C06A] mb-2">5k+</h4>
                   <p className="text-sm text-gray-500 uppercase tracking-widest font-bold">Members</p>
                 </div>
               </div>
@@ -303,7 +303,7 @@ export const LandingPage = () => {
       </section>
 
       {/* 8. CTA SECTION */}
-      <section className="py-32 bg-gradient-to-b from-[#0a0a0a] to-[#D4AF37]/20 border-t border-[#333]">
+      <section className="py-32 bg-gradient-to-b from-[#0a0a0a] to-[#E3C06A]/20 border-t border-[#333]">
         <div className="container mx-auto px-4 md:px-8 text-center max-w-3xl">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -311,18 +311,18 @@ export const LandingPage = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-4xl md:text-6xl font-serif text-white font-bold mb-8 leading-tight">Ready for a <br /><span className="text-[#D4AF37]">Perfect Night?</span></h2>
+            <h2 className="text-4xl md:text-6xl font-serif text-white font-bold mb-8 leading-tight">Ready for a <br /><span className="text-[#E3C06A]">Perfect Night?</span></h2>
             <p className="text-xl text-gray-400 mb-12">Join our exclusive community and elevate your evenings with the finest wines and unparalleled service.</p>
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
               <Link 
                 to="/wines" 
-                className="w-full sm:w-auto px-10 py-5 bg-transparent border border-[#D4AF37] text-[#D4AF37] rounded font-bold uppercase tracking-wider hover:bg-[#D4AF37] hover:text-black transition-all duration-300"
+                className="w-full sm:w-auto px-10 py-5 bg-transparent border border-[#E3C06A] text-[#E3C06A] rounded font-bold uppercase tracking-wider hover:bg-[#E3C06A] hover:text-black transition-all duration-300"
               >
                 EXPLORE WINES -&gt;
               </Link>
               <Link 
                 to="/reservations" 
-                className="w-full sm:w-auto px-10 py-5 bg-[#D4AF37] text-black rounded font-bold uppercase tracking-wider hover:bg-[#c39b22] transition-all duration-300 shadow-[0_0_30px_rgba(212,175,55,0.35)]"
+                className="w-full sm:w-auto px-10 py-5 bg-[#E3C06A] text-black rounded font-bold uppercase tracking-wider hover:bg-[#CDA74C] transition-all duration-300 shadow-[0_0_30px_rgba(227,192,106,0.35)]"
               >
                 RESERVE TABLE -&gt;
               </Link>

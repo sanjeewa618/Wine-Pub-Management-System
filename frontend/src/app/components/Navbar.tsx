@@ -40,7 +40,7 @@ export const Navbar = () => {
       <div className="container mx-auto px-4 md:px-8 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex flex-col">
-          <span className="text-2xl font-serif text-[#D4AF37] font-bold tracking-wider flex items-center gap-2">
+          <span className="text-2xl font-serif text-[#E3C06A] font-bold tracking-wider flex items-center gap-2">
             ðŸ· VinoVerse
           </span>
           <span className="text-xs text-slate-300 uppercase tracking-widest hidden md:block">
@@ -55,8 +55,8 @@ export const Navbar = () => {
               key={link.name}
               to={link.path}
               target="_self"
-              className={`text-sm uppercase tracking-wider font-medium hover:text-[#D4AF37] transition-colors ${
-                location.pathname === link.path ? "text-[#D4AF37]" : "text-white"
+              className={`text-sm uppercase tracking-wider font-medium hover:text-[#E3C06A] transition-colors ${
+                location.pathname === link.path ? "text-[#E3C06A]" : "text-white"
               }`}
             >
               {link.name}
@@ -66,14 +66,14 @@ export const Navbar = () => {
 
         {/* Actions */}
         <div className="hidden lg:flex items-center space-x-6">
-          <button className="text-white hover:text-[#D4AF37] transition-colors">
+          <button className="text-white hover:text-[#E3C06A] transition-colors">
             <Search size={20} />
           </button>
           
-          <Link to="/cart" className="relative text-white hover:text-[#D4AF37] transition-colors">
+          <Link to="/cart" className="relative text-white hover:text-[#E3C06A] transition-colors">
             <ShoppingCart size={20} />
             {totalCartItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-[#D4AF37] text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 bg-[#E3C06A] text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
                 {totalCartItems}
               </span>
             )}
@@ -83,9 +83,9 @@ export const Navbar = () => {
             <div className="relative">
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-2 text-white hover:text-[#D4AF37] transition-colors"
+                className="flex items-center space-x-2 text-white hover:text-[#E3C06A] transition-colors"
               >
-                <div className="h-8 w-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-sm font-bold border border-[#D4AF37]">
+                <div className="h-8 w-8 rounded-full bg-[#E3C06A] flex items-center justify-center text-sm font-bold border border-[#E3C06A]">
                   {state.user.name.charAt(0)}
                 </div>
               </button>
@@ -98,7 +98,7 @@ export const Navbar = () => {
                   </div>
                   <Link
                     to={`/${state.user.role}`}
-                    className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-[#333] hover:text-[#D4AF37] transition-colors"
+                    className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-[#333] hover:text-[#E3C06A] transition-colors"
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <LayoutDashboard size={16} className="mr-2" />
@@ -106,7 +106,7 @@ export const Navbar = () => {
                   </Link>
                   <Link
                     to="/profile"
-                    className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-[#333] hover:text-[#D4AF37] transition-colors"
+                    className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-[#333] hover:text-[#E3C06A] transition-colors"
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <Settings size={16} className="mr-2" />
@@ -127,10 +127,10 @@ export const Navbar = () => {
             </div>
           ) : (
             <div className="flex items-center space-x-4">
-              <Link to="/auth?mode=login" className="text-white hover:text-[#D4AF37] text-sm uppercase tracking-wider font-medium transition-colors">
+              <Link to="/auth?mode=login" className="text-white hover:text-[#E3C06A] text-sm uppercase tracking-wider font-medium transition-colors">
                 Login
               </Link>
-              <Link to="/auth?mode=register" className="bg-[#D4AF37] text-black px-4 py-2 rounded text-sm uppercase tracking-wider font-bold hover:bg-[#b5952f] transition-colors">
+              <Link to="/auth?mode=register" className="bg-[#E3C06A] text-black px-4 py-2 rounded text-sm uppercase tracking-wider font-bold hover:bg-[#CDA74C] transition-colors">
                 Register
               </Link>
             </div>
@@ -139,7 +139,7 @@ export const Navbar = () => {
 
         {/* Mobile Menu Toggle */}
         <button
-          className="lg:hidden text-white hover:text-[#D4AF37] transition-colors"
+          className="lg:hidden text-white hover:text-[#E3C06A] transition-colors"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -155,7 +155,7 @@ export const Navbar = () => {
                 key={link.name}
                 to={link.path}
                 target="_self"
-                className="text-white text-lg font-medium hover:text-[#D4AF37] transition-colors"
+                className="text-white text-lg font-medium hover:text-[#E3C06A] transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.name}
@@ -166,7 +166,7 @@ export const Navbar = () => {
               <>
                 <Link
                   to={`/${state.user.role}`}
-                  className="text-white text-lg font-medium hover:text-[#D4AF37] transition-colors"
+                  className="text-white text-lg font-medium hover:text-[#E3C06A] transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Dashboard
@@ -192,7 +192,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   to="/auth?mode=register"
-                  className="bg-[#D4AF37] text-black text-center py-2 rounded text-lg font-bold"
+                  className="bg-[#E3C06A] text-black text-center py-2 rounded text-lg font-bold"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Register

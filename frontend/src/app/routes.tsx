@@ -18,6 +18,8 @@ import { AdminSectionPage } from "./pages/AdminSectionPage";
 import { SellerDashboard } from "./pages/SellerDashboard";
 import { SellerOrdersPage } from "./pages/SellerOrdersPage";
 import { SellerItemsPage } from "./pages/SellerItemsPage";
+import { SellerAnalyticsPage } from "./pages/SellerAnalyticsPage";
+import { SellerSettingsPage } from "./pages/SellerSettingsPage";
 import { CustomerDashboard } from "./pages/CustomerDashboard";
 import { CustomerReservationsPage } from "./pages/CustomerReservationsPage";
 import { CustomerOrderHistoryPage } from "./pages/CustomerOrderHistoryPage";
@@ -96,8 +98,8 @@ export const router = createBrowserRouter([
           { path: "checkout/delivery", element: <DeliveryCheckoutPage /> },
           { path: "orders/:orderId/tracking", element: <OrderTrackingPage /> },
           { path: "bites", element: <BitesPage /> },
-          { path: "about", element: <div className="pt-32 pb-24 text-center min-h-screen text-white"><h1 className="text-4xl font-serif text-[#D4AF37]">About Us</h1></div> },
-          { path: "contact", element: <div className="pt-32 pb-24 text-center min-h-screen text-white"><h1 className="text-4xl font-serif text-[#D4AF37]">Contact Us</h1></div> },
+          { path: "about", element: <div className="pt-32 pb-24 text-center min-h-screen text-white"><h1 className="text-4xl font-serif text-[#E3C06A]">About Us</h1></div> },
+          { path: "contact", element: <div className="pt-32 pb-24 text-center min-h-screen text-white"><h1 className="text-4xl font-serif text-[#E3C06A]">Contact Us</h1></div> },
         ],
       },
       {
@@ -163,6 +165,8 @@ export const router = createBrowserRouter([
           { index: true, element: <SellerDashboard /> },
           { path: "wines", element: <SellerItemsPage /> },
           { path: "orders", element: <SellerOrdersPage /> },
+          { path: "analytics", element: <SellerAnalyticsPage /> },
+          { path: "settings", element: <SellerSettingsPage /> },
           { path: "*", element: <div className="flex items-center justify-center h-full text-gray-400">Page Under Construction</div> }
         ]
       },
