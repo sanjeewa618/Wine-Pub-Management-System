@@ -33,10 +33,12 @@ export const DeliveryCheckoutPage = () => {
   const navigate = useNavigate();
   const { state, checkout } = useApp();
 
-  const initialAddress = typeof location.state === "object" && location.state && "address" in location.state ? String((location.state as { address?: string }).address || "") : "";
+  const checkoutState = (location.state as { address?: string; flow?: "seller-payment"; paymentOption?: DeliveryPaymentOption } | null) || null;
+  const isSellerPaymentFlow = checkoutState?.flow === "seller-payment";
+  const initialAddress = String(checkoutState?.address || "");
 
   const [address, setAddress] = useState(initialAddress);
-  const [paymentOption, setPaymentOption] = useState<DeliveryPaymentOption>("cod");
+  const [paymentOption, setPaymentOption] = useState<DeliveryPaymentOption>(checkoutState?.paymentOption || "cod");
   const [cardBrand, setCardBrand] = useState<CardBrand>("visa");
   const [cardHolder, setCardHolder] = useState("");
   const [cardNumber, setCardNumber] = useState("");
@@ -49,7 +51,7 @@ export const DeliveryCheckoutPage = () => {
 
   const subtotal = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = Number((subtotal * 0.08).toFixed(2));
-  const deliveryCharge = 500;
+  const deliveryCharge = isSellerPaymentFlow ? 0 : 500;
   const total = subtotal + tax + deliveryCharge;
 
   const cardDigits = useMemo(() => cardNumber.replace(/\D/g, "").slice(0, 19), [cardNumber]);
@@ -69,7 +71,7 @@ export const DeliveryCheckoutPage = () => {
 
     try {
       const order = (await checkout({
-        orderType: "delivery",
+        orderType: isSellerPaymentFlow ? "pickup" : "delivery",
         deliveryAddress: address,
         paymentMethod: paymentOption === "cod" ? "cash" : "card",
       })) as { _id: string; total: number };
@@ -91,7 +93,7 @@ export const DeliveryCheckoutPage = () => {
           paymentMethod: "card",
           cardBrand,
           cardNumber: last4,
-          orderType: "delivery",
+          orderType: isSellerPaymentFlow ? "pickup" : "delivery",
           tableNumber: "",
           deliveryAddress: address,
         }),
@@ -117,8 +119,8 @@ export const DeliveryCheckoutPage = () => {
     downloadReceiptPdf(`receipt-${successData.paymentRef}.pdf`, "Delivery Payment Receipt", [
       { label: "Payment Reference", value: successData.paymentRef },
       { label: "Order ID", value: successData.orderId },
-      { label: "Order Type", value: "Home Delivery" },
-      { label: "Delivery Address", value: address },
+      { label: "Order Type", value: isSellerPaymentFlow ? "Seller Payment" : "Home Delivery" },
+      { label: "Delivery Address", value: address || "N/A" },
       { label: "Amount Paid", value: formatLkr(successData.total) },
       { label: "Paid Via", value: `${cardBrand.toUpperCase()} (**** ${cardDigits.slice(-4)})` },
       { label: "Issued At", value: new Date().toLocaleString() },
@@ -142,7 +144,13 @@ export const DeliveryCheckoutPage = () => {
           <CheckCircle2 className="mx-auto text-[#D4AF37] mb-4" size={56} />
           <h1 className="text-3xl font-serif text-white mb-2">{isPrepaidSuccess ? "Payment Successful" : "Order Confirmed"}</h1>
           <p className="text-gray-300 mb-6">
-            {isPrepaidSuccess ? "Your prepaid delivery order is confirmed." : "Your cash on delivery order has been confirmed successfully."}
+            {isSellerPaymentFlow
+              ? isPrepaidSuccess
+                ? "Seller prepayment completed successfully."
+                : "Seller COD order has been confirmed successfully."
+              : isPrepaidSuccess
+              ? "Your prepaid delivery order is confirmed."
+              : "Your cash on delivery order has been confirmed successfully."}
           </p>
           <div className="mb-6 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-emerald-200 text-sm font-semibold">
             {isPrepaidSuccess ? "Payment successfully confirmed." : "Order successfully confirmed."}
@@ -151,7 +159,7 @@ export const DeliveryCheckoutPage = () => {
             {isPrepaidSuccess && <p>Payment Ref: <span className="text-[#D4AF37]">{paidReference}</span></p>}
             <p>Order ID: {confirmedOrderId}</p>
             <p>{isPrepaidSuccess ? "Total Paid" : "Order Total"}: {formatLkr(confirmedTotal)}</p>
-            {!isPrepaidSuccess && <p>Payment Method: Cash on Delivery</p>}
+            {!isPrepaidSuccess && <p>Payment Method: COD</p>}
           </div>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             {isPrepaidSuccess && (
@@ -159,12 +167,14 @@ export const DeliveryCheckoutPage = () => {
                 <Download size={16} /> Download Receipt
               </button>
             )}
-            <button
-              onClick={() => navigate(`/orders/${confirmedOrderId}/tracking`, { state: { successMessage: "Order successfully confirmed." } })}
-              className="px-5 py-3 rounded-lg border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black inline-flex items-center justify-center gap-2"
-            >
-              Track Order
-            </button>
+            {!isSellerPaymentFlow && (
+              <button
+                onClick={() => navigate(`/orders/${confirmedOrderId}/tracking`, { state: { successMessage: "Order successfully confirmed." } })}
+                className="px-5 py-3 rounded-lg border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black inline-flex items-center justify-center gap-2"
+              >
+                Track Order
+              </button>
+            )}
             <Link to="/" className="px-5 py-3 rounded-lg border border-[#3a3a3a] text-white hover:border-[#D4AF37] inline-flex items-center justify-center gap-2">
               <ArrowLeft size={16} /> Back To Home
             </Link>
@@ -177,7 +187,7 @@ export const DeliveryCheckoutPage = () => {
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-slate-100 pt-32 pb-24 px-4 md:px-8">
       <div className="container mx-auto max-w-3xl">
-        <Link to="/cart" className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-[#D4AF37] mb-6">
+        <Link to={isSellerPaymentFlow ? "/cart?flow=seller-payment" : "/cart"} className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-[#D4AF37] mb-6">
           <ArrowLeft size={16} /> Back to Cart
         </Link>
 
@@ -187,12 +197,16 @@ export const DeliveryCheckoutPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
         >
-          <h1 className="text-3xl font-serif text-white mb-2">Delivery Checkout</h1>
-          <p className="text-gray-400 mb-6">Choose cash on delivery or prepayment and complete your order.</p>
+          <h1 className="text-3xl font-serif text-white mb-2">{isSellerPaymentFlow ? "Seller Payment Checkout" : "Delivery Checkout"}</h1>
+          <p className="text-gray-400 mb-6">
+            {isSellerPaymentFlow
+              ? "Choose prepayment or COD to complete the seller order flow."
+              : "Choose cash on delivery or prepayment and complete your order."}
+          </p>
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="text-xs uppercase tracking-widest text-gray-400 mb-2 block">Delivery Address</label>
+              <label className="text-xs uppercase tracking-widest text-gray-400 mb-2 block">{isSellerPaymentFlow ? "Delivery Address (Required For COD)" : "Delivery Address"}</label>
               <textarea
                 value={address}
                 onChange={(event) => setAddress(event.target.value)}
@@ -201,23 +215,25 @@ export const DeliveryCheckoutPage = () => {
               />
             </div>
 
-            <div>
-              <p className="text-xs uppercase tracking-widest text-gray-400 mb-2">Payment Option</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setPaymentOption("cod")}
-                  className={`py-3 rounded-lg border text-sm font-bold ${paymentOption === "cod" ? "bg-[#D4AF37] text-black border-[#D4AF37]" : "border-[#3a3a3a] text-gray-300"}`}
-                >
-                  Cash on Delivery
-                </button>
-                <button
-                  onClick={() => setPaymentOption("prepaid")}
-                  className={`py-3 rounded-lg border text-sm font-bold ${paymentOption === "prepaid" ? "bg-[#D4AF37] text-black border-[#D4AF37]" : "border-[#3a3a3a] text-gray-300"}`}
-                >
-                  Pre Payment
-                </button>
+            {!isSellerPaymentFlow && (
+              <div>
+                <p className="text-xs uppercase tracking-widest text-gray-400 mb-2">Payment Option</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setPaymentOption("cod")}
+                    className={`py-3 rounded-lg border text-sm font-bold ${paymentOption === "cod" ? "bg-[#D4AF37] text-black border-[#D4AF37]" : "border-[#3a3a3a] text-gray-300"}`}
+                  >
+                    COD
+                  </button>
+                  <button
+                    onClick={() => setPaymentOption("prepaid")}
+                    className={`py-3 rounded-lg border text-sm font-bold ${paymentOption === "prepaid" ? "bg-[#D4AF37] text-black border-[#D4AF37]" : "border-[#3a3a3a] text-gray-300"}`}
+                  >
+                    Pre Payment
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {paymentOption === "prepaid" && (
@@ -282,10 +298,16 @@ export const DeliveryCheckoutPage = () => {
 
           <div className="rounded-lg border border-[#2b313b] bg-[#0f1319] p-3 text-xs text-gray-300 flex items-start gap-2 mb-5">
             <ShieldCheck size={15} className="text-[#D4AF37] mt-0.5" />
-            Secure checkout enabled. Only masked card information is retained for receipt records.
+            {isSellerPaymentFlow
+              ? "Secure seller checkout enabled. Only masked card information is retained for receipt records."
+              : "Secure checkout enabled. Only masked card information is retained for receipt records."}
           </div>
 
           {errorMessage && <p className="text-sm text-red-300 mb-4">{errorMessage}</p>}
+
+          {paymentOption === "cod" && !canSubmitCod && (
+            <p className="text-sm text-amber-300 mb-4">Enter delivery address to continue with COD checkout.</p>
+          )}
 
           <motion.button
             onClick={handleConfirm}

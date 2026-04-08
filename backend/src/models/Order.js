@@ -3,12 +3,15 @@ const mongoose = require("mongoose");
 const orderItemSchema = new mongoose.Schema(
   {
     productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+    sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false },
     productType: { type: String, enum: ["wine", "arrack", "whiskey", "whisky", "rum", "vodka", "beer", "bite", "food", "beverage"], required: true },
     name: { type: String, required: true },
     image: { type: String, default: "" },
     quantity: { type: Number, default: 1 },
     selectedSize: { type: String, default: "" },
     price: { type: Number, required: true },
+    brand: { type: String, default: "" },
+    rating: { type: Number, default: 0 },
   },
   { _id: false }
 );

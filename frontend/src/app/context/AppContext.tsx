@@ -240,6 +240,27 @@ const mockProducts: Product[] = [
 ];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+const CART_STORAGE_KEY = "wine-pub-cart";
+
+function loadStoredCart(): CartItem[] {
+  try {
+    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return mapCartItems(parsed);
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredCart(cart: CartItem[]) {
+  try {
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  } catch {
+    // Ignore storage write failures.
+  }
+}
 
 function mapUser(user: any): User {
   return {
@@ -285,8 +306,35 @@ function mapProduct(product: any): Product {
 
 function mapCartItem(item: any): CartItem {
   const product = item?.productId ?? item;
+
+  const fallbackProduct = {
+    id: String(item?.productId?._id ?? item?.productId ?? item?._id ?? ""),
+    name: item?.name ?? product?.name ?? "Untitled",
+    productType: item?.productType ?? product?.productType ?? "wine",
+    category: item?.category ?? product?.category ?? "General",
+    subCategory: item?.subCategory ?? product?.subCategory ?? "",
+    price: Number(item?.price ?? product?.price ?? 0),
+    image:
+      item?.image ||
+      product?.image ||
+      "https://images.unsplash.com/photo-1514361892635-eae31a3d0f1d?auto=format&fit=crop&q=80&w=800",
+    rating: Number(item?.rating ?? product?.rating ?? 0),
+    description: item?.description ?? product?.description ?? "",
+    alcohol: item?.alcoholPercentage ?? item?.alcohol ?? product?.alcoholPercentage ?? product?.alcohol,
+    sizes: item?.sizes ?? product?.sizes ?? [],
+    sizePricing: Array.isArray(item?.sizePricing)
+      ? item.sizePricing.map((entry: any) => ({ size: String(entry?.size ?? ""), price: Number(entry?.price ?? 0) }))
+      : Array.isArray(product?.sizePricing)
+      ? product.sizePricing.map((entry: any) => ({ size: String(entry?.size ?? ""), price: Number(entry?.price ?? 0) }))
+      : [],
+    sellerId: String(item?.sellerId ?? product?.sellerId?._id ?? product?.sellerId ?? ""),
+    brand: item?.brand ?? product?.brand ?? "",
+    country: item?.country ?? product?.country ?? "",
+    originType: item?.originType ?? product?.originType ?? "",
+  };
+
   return {
-    ...mapProduct(product),
+    ...mapProduct(fallbackProduct),
     quantity: Number(item?.quantity ?? 1),
     selectedSize: item?.selectedSize || undefined,
     price: Number(item?.price ?? product?.price ?? 0),
@@ -294,13 +342,33 @@ function mapCartItem(item: any): CartItem {
 }
 
 function mapCartItems(items: any[] = []): CartItem[] {
-  return items.map((item) => mapCartItem(item));
+  const merged = new Map<string, CartItem>();
+
+  items.forEach((item) => {
+    const mapped = mapCartItem(item);
+    const normalizedSize = String(mapped.selectedSize || "");
+    const key = `${mapped.id}::${normalizedSize}`;
+    const existing = merged.get(key);
+
+    if (existing) {
+      existing.quantity += Math.max(1, Number(mapped.quantity || 1));
+      return;
+    }
+
+    merged.set(key, {
+      ...mapped,
+      selectedSize: normalizedSize || undefined,
+      quantity: Math.max(1, Number(mapped.quantity || 1)),
+    });
+  });
+
+  return Array.from(merged.values());
 }
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<AppState>({
     user: null,
-    cart: [],
+    cart: loadStoredCart(),
     theme: "dark",
   });
   const [products, setProducts] = useState<Product[]>([]);
@@ -354,14 +422,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
 
+        const serverCartItems = mapCartItems(cartResponse.cart?.items ?? []);
+        const storedCartItems = loadStoredCart();
+        const resolvedCart = serverCartItems.length > 0 ? serverCartItems : storedCartItems;
+
         setState((prev) => ({
           ...prev,
           user: mapUser(meResponse.user),
-          cart: mapCartItems(cartResponse.cart?.items ?? []),
+          cart: resolvedCart,
         }));
         setSessionRefreshKey((prev) => prev + 1);
       } catch (error) {
-        clearApiToken();
+        // Keep token as-is on bootstrap failure (e.g., backend temporarily unavailable).
       } finally {
         if (isActive) {
           setIsAuthResolved(true);
@@ -386,15 +458,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => window.clearInterval(intervalId);
   }, [fetchProducts]);
 
+  useEffect(() => {
+    saveStoredCart(state.cart);
+  }, [state.cart]);
+
   const refreshCart = async () => {
     if (!getApiToken()) {
       return;
     }
 
     const response = await apiRequest<{ cart: any }>("/cart");
+    const serverCartItems = mapCartItems(response.cart?.items ?? []);
+    const storedCartItems = loadStoredCart();
+    const resolvedCart = serverCartItems.length > 0 ? serverCartItems : storedCartItems;
+
     setState((prev) => ({
       ...prev,
-      cart: mapCartItems(response.cart?.items ?? []),
+      cart: resolvedCart,
     }));
   };
 
@@ -499,14 +579,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const response = await apiRequest<{ cart: any }>(`/cart/items/${productId}${selectedSize ? `?selectedSize=${encodeURIComponent(selectedSize)}` : ""}`, {
-      method: "DELETE",
-    });
+    try {
+      const response = await apiRequest<{ cart: any }>(`/cart/items/${productId}${selectedSize ? `?selectedSize=${encodeURIComponent(selectedSize)}` : ""}`, {
+        method: "DELETE",
+      });
 
-    setState((prev) => ({
-      ...prev,
-      cart: mapCartItems(response.cart?.items ?? []),
-    }));
+      setState((prev) => ({
+        ...prev,
+        cart: mapCartItems(response.cart?.items ?? []),
+      }));
+    } catch {
+      // Keep cart interaction responsive even if backend call fails.
+      setState((prev) => ({
+        ...prev,
+        cart: prev.cart.filter((item) => item.id !== productId || (selectedSize ? item.selectedSize !== selectedSize : false)),
+      }));
+    }
   };
 
   const updateQuantity = async (productId: string, quantity: number, selectedSize?: string) => {

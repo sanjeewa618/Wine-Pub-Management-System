@@ -66,11 +66,17 @@ interface AdminOrder {
   items?: Array<{
     name?: string;
     quantity?: number;
+    selectedSize?: string;
+    brand?: string;
+    rating?: number;
+    sellerId?: string;
     productId?: {
       _id?: string;
       sellerId?: string | null;
       name?: string;
       productType?: string;
+      brand?: string;
+      rating?: number;
     };
   }>;
   total: number;
@@ -388,6 +394,8 @@ const statusColorMap = {
   low: "text-emerald-300 border-emerald-400/30 bg-emerald-500/10",
 };
 
+const CREATE_ORDER_ITEM_FALLBACK_IMAGE = "https://images.unsplash.com/photo-1514361892635-eae31a3d0f1d?auto=format&fit=crop&q=80&w=300";
+
 export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageProps) => {
   const navigate = useNavigate();
   const { addToCart, state, updateProfile, changePassword, toggleTwoFactor } = useApp();
@@ -555,43 +563,95 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     const selectedItems = Object.entries(selectedCreateOrderQuantities).filter(([, qty]) => Number(qty) > 0);
     if (selectedItems.length === 0) {
       setFeedbackType("error");
-      setFeedbackMessage("Select at least one item quantity before adding to cart.");
+      setFeedbackMessage("Select at least one item quantity before confirming the order.");
       return;
     }
 
     setIsAddingCreateOrderToCart(true);
     try {
-      for (const [itemId, qty] of selectedItems) {
-        const item = createOrderItems.find((entry) => entry._id === itemId);
-        if (!item) continue;
+      const selectedPayload = selectedItems
+        .map(([itemId, qty]) => {
+          const item = createOrderItems.find((entry) => entry._id === itemId);
+          if (!item) {
+            return null;
+          }
 
-        const normalizedType = ["bite", "food", "beverage"].includes(String(item.productType || "").toLowerCase())
-          ? "bite"
-          : "wine";
+          return {
+            productId: item._id,
+            quantity: Number(qty),
+            selectedSize: "",
+          };
+        })
+        .filter((entry): entry is { productId: string; quantity: number; selectedSize: string } => Boolean(entry));
+
+      try {
+        await apiRequest("/cart/clear", { method: "POST" });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "";
+        const isRouteMissing = message.toLowerCase().includes("route not found") || message.includes("404");
+
+        if (!isRouteMissing) {
+          throw error;
+        }
+
+        const existingCart = await apiRequest<{ cart?: { items?: Array<{ productId?: string | { _id?: string }; selectedSize?: string }> } }>("/cart");
+        const existingItems = existingCart.cart?.items || [];
+
+        await Promise.all(
+          existingItems.map((entry) => {
+            const productId =
+              typeof entry.productId === "string"
+                ? entry.productId
+                : String(entry.productId?._id || "");
+
+            if (!productId) return Promise.resolve();
+
+            const sizeQuery = entry.selectedSize ? `?selectedSize=${encodeURIComponent(entry.selectedSize)}` : "";
+            return apiRequest(`/cart/items/${productId}${sizeQuery}`, { method: "DELETE" });
+          })
+        );
+      }
+
+      for (const entry of selectedPayload) {
+        const item = createOrderItems.find((catalogItem) => catalogItem._id === entry.productId);
+        if (!item) {
+          continue;
+        }
+
+        const normalizedType = ["bite", "food", "beverage"].includes(String(item.productType || "").toLowerCase()) ? "bite" : "wine";
 
         await addToCart(
           {
             id: item._id,
             name: item.name,
+            productType: item.productType,
             type: normalizedType,
             category: item.category || "General",
             price: Number(item.price || 0),
             image: item.image || "",
             rating: Number(item.rating || 0),
             description: item.description || "",
+            sellerId: getItemSellerId(item) || undefined,
           },
-          undefined,
-          Number(qty)
+          "",
+          Number(entry.quantity || 1)
         );
       }
 
       setIsCreateOrderModalOpen(false);
+      setSelectedCreateOrderQuantities({});
       setFeedbackType("success");
-      setFeedbackMessage("Selected seller items added to cart successfully.");
-      navigate("/cart", { state: { orderType: "delivery" } });
+      setFeedbackMessage("Items moved to cart. Complete payment from checkout to send seller alert.");
+      navigate("/cart?flow=seller-payment", {
+        state: {
+          orderType: "pickup",
+          flow: "seller-payment",
+          notice: "Items added to cart. Complete payment to send order alert to the seller.",
+        },
+      });
     } catch (error) {
       setFeedbackType("error");
-      setFeedbackMessage(error instanceof Error ? error.message : "Failed to add selected items to cart");
+      setFeedbackMessage(error instanceof Error ? error.message : "Failed to move selected items to cart");
     } finally {
       setIsAddingCreateOrderToCart(false);
     }
@@ -831,7 +891,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
   }, [isBitesSection, isWinesSection]);
 
   const isSellerRelatedOrder = (order: AdminOrder) =>
-    (order.items || []).some((item) => Boolean(item?.productId?.sellerId));
+    (order.items || []).some((item) => Boolean(item?.sellerId || item?.productId?.sellerId));
 
   const getOrderUserRole = (order: AdminOrder) =>
     typeof order.userId === "object" ? String(order.userId?.role || "").toLowerCase() : "";
@@ -1485,40 +1545,54 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
 
     const sellerOrders = orderItems.filter((order) => {
       const role = getOrderUserRole(order);
+      const sellerRelated = isSellerRelatedOrder(order);
       // "Orders to sellers" are operational purchase orders initiated by admin.
-      return role === "admin" && isSellerRelatedOrder(order);
+      // Keep fallback for records where user role is not populated.
+      return sellerRelated && (role === "admin" || !role);
     });
     return { customerOrders, sellerOrders };
   }, [orderItems]);
 
   const pendingStatuses = new Set(["pending", "confirmed", "preparing", "ready"]);
 
+  const sellerRequestRating = useMemo(() => {
+    const ratings = ordersByType.sellerOrders
+      .map((order) => Number((order as unknown as { sellerRating?: number }).sellerRating || 0))
+      .filter((rating) => Number.isFinite(rating) && rating > 0);
+
+    if (ratings.length === 0) {
+      return "0.0";
+    }
+
+    return (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1);
+  }, [ordersByType.sellerOrders]);
+
   const ordersKpis = useMemo(() => {
     if (!isOrdersSection) {
       return data.kpis;
     }
 
-    const deliveredCustomers = ordersByType.customerOrders.filter((order) => order.status === "delivered").length;
-    const pendingAll = orderItems.filter((order) => pendingStatuses.has(normalizeOrderStatus(order.status))).length;
+    const pendingSellerRequests = ordersByType.sellerOrders.filter((order) => normalizeOrderStatus(order.status) === "pending").length;
+    const totalSellerRequests = ordersByType.sellerOrders.length;
 
     return [
       {
-        label: "Total Customer Orders",
-        value: String(ordersByType.customerOrders.length),
-        delta: `Delivered: ${deliveredCustomers}`,
+        label: "Total Orders",
+        value: String(totalSellerRequests),
+        delta: "Admin requests sent to sellers",
       },
       {
-        label: "Total Orders To Sellers",
-        value: String(ordersByType.sellerOrders.length),
-        delta: "Orders containing seller products",
+        label: "Pending Orders",
+        value: String(pendingSellerRequests),
+        delta: "Waiting for seller confirmation",
       },
       {
-        label: "Total Pending Orders",
-        value: String(pendingAll),
-        delta: "Customer + seller related",
+        label: "Rating",
+        value: sellerRequestRating,
+        delta: "Average rating across requested items",
       },
     ];
-  }, [data.kpis, isOrdersSection, orderItems, ordersByType.customerOrders, ordersByType.sellerOrders]);
+  }, [data.kpis, isOrdersSection, ordersByType.sellerOrders, sellerRequestRating]);
 
   const analyticsKpis = useMemo(() => {
     const revenue = analyticsOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
@@ -1626,16 +1700,23 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
   );
 
   const recentOrderActivities = useMemo(() => {
-    return orderItems.slice(0, 18).map((order) => {
+    return [...orderItems]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 18)
+      .map((order) => {
       const customerName = typeof order.userId === "object" ? order.userId?.name || order.userId?.email || "Customer" : "Customer";
       const kind = isSellerRelatedOrder(order) ? "Seller-related order" : "Customer order";
+      const firstItem = order.items?.[0];
+      const itemSummary = firstItem
+        ? `${firstItem.name || "Item"}${firstItem.brand ? ` · ${firstItem.brand}` : ""} x${Number(firstItem.quantity || 0)}`
+        : "No item details";
       return {
         id: order._id,
         title: `${kind} · ${order.status}`,
-        detail: `${customerName} · ${order.orderType} · LKR ${Number(order.total || 0).toFixed(2)}`,
+        detail: `${customerName} · ${order.orderType} · ${itemSummary} · ${String(order.paymentMethod || "other").toUpperCase()} · LKR ${Number(order.total || 0).toFixed(2)}`,
         time: new Date(order.createdAt).getTime(),
       };
-    });
+      });
   }, [orderItems]);
 
   const weeklyOrderChartData = useMemo(() => {
@@ -1655,15 +1736,21 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     }));
   }, [ordersByType.customerOrders, ordersByType.sellerOrders, ordersChartMode]);
 
-  const customerPayments = useMemo(
-    () => paymentItems.filter((payment) => !ordersByType.sellerOrders.some((order) => order._id === payment.orderId?._id)),
-    [ordersByType.sellerOrders, paymentItems]
-  );
+  const customerPayments = useMemo(() => {
+    const sellerOrderIds = new Set(ordersByType.sellerOrders.map((order) => String(order._id || "")));
+    return paymentItems.filter((payment) => {
+      const paymentOrderId = String(payment.orderId?._id || "");
+      return !sellerOrderIds.has(paymentOrderId);
+    });
+  }, [ordersByType.sellerOrders, paymentItems]);
 
-  const sellerPayments = useMemo(
-    () => paymentItems.filter((payment) => ordersByType.sellerOrders.some((order) => order._id === payment.orderId?._id)),
-    [ordersByType.sellerOrders, paymentItems]
-  );
+  const sellerPayments = useMemo(() => {
+    const sellerOrderIds = new Set(ordersByType.sellerOrders.map((order) => String(order._id || "")));
+    return paymentItems.filter((payment) => {
+      const paymentOrderId = String(payment.orderId?._id || "");
+      return sellerOrderIds.has(paymentOrderId);
+    });
+  }, [ordersByType.sellerOrders, paymentItems]);
 
   const pendingReservationAlerts = useMemo(
     () => reservationItems.filter((item) => item.status === "pending").sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
@@ -2387,91 +2474,90 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-            <div className="xl:col-span-3 space-y-6">
-              <div className="bg-[#111] border border-[#333] rounded-xl p-6">
-                <h2 className="text-white text-lg font-bold mb-4">Recent Orders Activities</h2>
-                <div
-                  className="space-y-3 max-h-[280px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
-                  style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+            <div className="xl:col-span-3 bg-[#111] border border-[#333] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4 gap-2">
+                <h2 className="text-white text-lg font-bold">Weekly Orders Analysis</h2>
+                <select
+                  value={ordersChartMode}
+                  onChange={(event) => setOrdersChartMode(event.target.value as "customer" | "seller")}
+                  className="rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-xs text-gray-200"
                 >
-                  {isLoadingOrders && recentOrderActivities.length === 0 ? (
-                    <p className="text-sm text-gray-400">Loading recent activities...</p>
-                  ) : recentOrderActivities.length === 0 ? (
-                    <p className="text-sm text-gray-400">No order activities found.</p>
-                  ) : (
-                    recentOrderActivities.map((activity) => (
-                      <div key={activity.id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
-                        <p className="text-sm text-white font-semibold">{activity.title}</p>
-                        <p className="text-xs text-gray-400 mt-1">{activity.detail}</p>
-                        <p className="text-xs text-[#D4AF37] mt-1">{new Date(activity.time).toLocaleString()}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
+                  <option value="customer">Customer's Orders</option>
+                  <option value="seller">Seller's Orders</option>
+                </select>
               </div>
-
-              <div className="bg-[#111] border border-[#333] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4 gap-2">
-                  <h2 className="text-white text-lg font-bold">Weekly Orders Analysis</h2>
-                  <select
-                    value={ordersChartMode}
-                    onChange={(event) => setOrdersChartMode(event.target.value as "customer" | "seller")}
-                    className="rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-xs text-gray-200"
-                  >
-                    <option value="customer">Customer's Orders</option>
-                    <option value="seller">Seller's Orders</option>
-                  </select>
-                </div>
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={weeklyOrderChartData} margin={{ top: 16, right: 12, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="ordersLineGlow" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#D4AF37" stopOpacity={0.35} />
-                          <stop offset="100%" stopColor="#D4AF37" stopOpacity={0.05} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid stroke="#2f2f2f" strokeDasharray="3 3" vertical={false} />
-                      <XAxis
-                        dataKey="label"
-                        stroke="#9ca3af"
-                        tick={{ fill: "#9ca3af", fontSize: 11 }}
-                        label={{ value: "Week Days", position: "insideBottom", offset: -6, fill: "#9ca3af", fontSize: 11 }}
-                      />
-                      <YAxis
-                        stroke="#9ca3af"
-                        tick={{ fill: "#9ca3af", fontSize: 11 }}
-                        allowDecimals={false}
-                        label={{ value: "Orders Count", angle: -90, position: "insideLeft", fill: "#9ca3af", fontSize: 11 }}
-                      />
-                      <Tooltip
-                        cursor={{ fill: "rgba(212,175,55,0.08)" }}
-                        contentStyle={{ background: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="orders"
-                        stroke="#D4AF37"
-                        strokeWidth={3}
-                        dot={{ r: 4, strokeWidth: 2, stroke: "#D4AF37", fill: "#0f0f0f" }}
-                        activeDot={{ r: 6, strokeWidth: 2, stroke: "#D4AF37", fill: "#D4AF37" }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="orders"
-                        stroke="url(#ordersLineGlow)"
-                        strokeWidth={10}
-                        dot={false}
-                        activeDot={false}
-                        isAnimationActive={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+              <div className="h-[320px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={weeklyOrderChartData} margin={{ top: 16, right: 12, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="ordersLineGlow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#D4AF37" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="#D4AF37" stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke="#2f2f2f" strokeDasharray="3 3" vertical={false} />
+                    <XAxis
+                      dataKey="label"
+                      stroke="#9ca3af"
+                      tick={{ fill: "#9ca3af", fontSize: 11 }}
+                      label={{ value: "Week Days", position: "insideBottom", offset: -6, fill: "#9ca3af", fontSize: 11 }}
+                    />
+                    <YAxis
+                      stroke="#9ca3af"
+                      tick={{ fill: "#9ca3af", fontSize: 11 }}
+                      allowDecimals={false}
+                      label={{ value: "Orders Count", angle: -90, position: "insideLeft", fill: "#9ca3af", fontSize: 11 }}
+                    />
+                    <Tooltip
+                      cursor={{ fill: "rgba(212,175,55,0.08)" }}
+                      contentStyle={{ background: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="orders"
+                      stroke="#D4AF37"
+                      strokeWidth={3}
+                      dot={{ r: 4, strokeWidth: 2, stroke: "#D4AF37", fill: "#0f0f0f" }}
+                      activeDot={{ r: 6, strokeWidth: 2, stroke: "#D4AF37", fill: "#D4AF37" }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="orders"
+                      stroke="url(#ordersLineGlow)"
+                      strokeWidth={10}
+                      dot={false}
+                      activeDot={false}
+                      isAnimationActive={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
             <div className="xl:col-span-2 bg-[#111] border border-[#333] rounded-xl p-6">
+              <h2 className="text-white text-lg font-bold mb-4">Recent Orders Activities</h2>
+              <div
+                className="space-y-3 max-h-[320px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4AF37 #1a1a1a" }}
+              >
+                {isLoadingOrders && recentOrderActivities.length === 0 ? (
+                  <p className="text-sm text-gray-400">Loading recent activities...</p>
+                ) : recentOrderActivities.length === 0 ? (
+                  <p className="text-sm text-gray-400">No order activities found.</p>
+                ) : (
+                  recentOrderActivities.map((activity) => (
+                    <div key={activity.id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
+                      <p className="text-sm text-white font-semibold">{activity.title}</p>
+                      <p className="text-xs text-gray-400 mt-1">{activity.detail}</p>
+                      <p className="text-xs text-[#D4AF37] mt-1">{new Date(activity.time).toLocaleString()}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#111] border border-[#333] rounded-xl p-6">
               <h2 className="text-white text-lg font-bold mb-4">Customer Order Status Tracker</h2>
               <div
                 className="space-y-3 max-h-[620px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1a1a1a] [&::-webkit-scrollbar-thumb]:bg-[#D4AF37]/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#D4AF37]"
@@ -2506,7 +2592,6 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                   })
                 )}
               </div>
-            </div>
           </div>
         </div>
       ) : isAnalyticsSection ? (
@@ -2987,7 +3072,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
               <div>
                 <h3 className="text-lg font-bold text-white">Create Seller Order</h3>
                 <p className="text-xs text-gray-400 mt-1">
-                  Select a registered seller, choose items with quantity, then add them to cart.
+                  Select a registered seller, choose items with quantity, then confirm the order request.
                 </p>
               </div>
               <button
@@ -3040,12 +3125,25 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       selectedSellerItems.map((item) => {
                         const selectedQty = Number(selectedCreateOrderQuantities[item._id] || 0);
                         const stock = Math.max(0, Number(item.stock || 0));
+                        const itemImage = String(item.image || "").trim() || CREATE_ORDER_ITEM_FALLBACK_IMAGE;
                         return (
                           <div key={item._id} className="rounded-lg border border-[#2f2f2f] bg-[#101010] p-3 flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-sm text-white font-semibold truncate">{item.name}</p>
-                              <p className="text-[11px] text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
-                              <p className="text-[11px] text-[#D4AF37] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {stock}</p>
+                            <div className="min-w-0 flex items-center gap-3">
+                              <img
+                                src={itemImage}
+                                alt={item.name}
+                                onError={(event) => {
+                                  const target = event.currentTarget;
+                                  target.onerror = null;
+                                  target.src = CREATE_ORDER_ITEM_FALLBACK_IMAGE;
+                                }}
+                                className="h-14 w-14 rounded-lg object-cover border border-[#2f2f2f]"
+                              />
+                              <div className="min-w-0">
+                                <p className="text-sm text-white font-semibold truncate">{item.name}</p>
+                                <p className="text-[11px] text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
+                                <p className="text-[11px] text-[#D4AF37] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {stock}</p>
+                              </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <button
@@ -3082,7 +3180,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       disabled={isAddingCreateOrderToCart || selectedCreateOrderCount === 0}
                       className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#c39b22] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {isAddingCreateOrderToCart ? "Adding..." : "Add To Cart"}
+                      {isAddingCreateOrderToCart ? "Confirming..." : "Confirm Order"}
                     </button>
                   </div>
                 </div>

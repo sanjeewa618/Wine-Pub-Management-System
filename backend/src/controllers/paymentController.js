@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { Payment } = require("../models/Payment");
 const { Order } = require("../models/Order");
+const { notifySellersForOrder } = require("../utils/sellerOrderAlerts");
 const { asyncHandler } = require("../utils/asyncHandler");
 const { ApiError } = require("../utils/ApiError");
 
@@ -45,6 +46,15 @@ const processPayment = asyncHandler(async (req, res) => {
     order.pickupDetails.tableNumber = tableNumber;
   }
   await order.save();
+
+  if (String(req.user?.role || "").toLowerCase() === "admin") {
+    await notifySellersForOrder({
+      order,
+      payment,
+      actor: req.user,
+      mode: "paid",
+    });
+  }
 
   res.status(201).json({ success: true, payment });
 });

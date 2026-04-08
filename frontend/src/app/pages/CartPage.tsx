@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useApp } from "../context/AppContext";
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
@@ -8,22 +8,59 @@ export const CartPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { state, updateQuantity, removeFromCart } = useApp();
-  const navigationState = (location.state as { orderType?: "pickup" | "delivery"; address?: string } | null) || null;
-  const [orderType, setOrderType] = useState<"pickup" | "delivery">(navigationState?.orderType === "delivery" ? "delivery" : "pickup");
-  const [address, setAddress] = useState(navigationState?.address || "");
+  const searchParams = new URLSearchParams(location.search);
+  let storedCartUi: { orderType?: "pickup" | "delivery"; address?: string; sellerPaymentOption?: "prepaid" | "cod" } | null = null;
+  try {
+    const storedCartUiRaw = window.sessionStorage.getItem("wine-pub-cart-ui");
+    storedCartUi = storedCartUiRaw
+      ? (JSON.parse(storedCartUiRaw) as { orderType?: "pickup" | "delivery"; address?: string; sellerPaymentOption?: "prepaid" | "cod" })
+      : null;
+  } catch {
+    storedCartUi = null;
+  }
+  const navigationState =
+    (location.state as { orderType?: "pickup" | "delivery"; address?: string; notice?: string; flow?: "seller-payment" } | null) || null;
+  const isSellerPaymentFlow = navigationState?.flow === "seller-payment" || searchParams.get("flow") === "seller-payment";
+  const [sellerPaymentOption, setSellerPaymentOption] = useState<"prepaid" | "cod">(storedCartUi?.sellerPaymentOption || "prepaid");
+  const [orderType, setOrderType] = useState<"pickup" | "delivery">(
+    navigationState?.orderType === "delivery" ? "delivery" : storedCartUi?.orderType === "delivery" ? "delivery" : "pickup"
+  );
+  const [address, setAddress] = useState(navigationState?.address || storedCartUi?.address || "");
+  const [flowNotice] = useState(navigationState?.notice || "");
   const [checkoutMessage, setCheckoutMessage] = useState("");
   
   const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.08;
-  const deliveryCharge = orderType === "delivery" ? 4.99 : 0;
+  const deliveryCharge = isSellerPaymentFlow ? 0 : orderType === "delivery" ? 4.99 : 0;
   const total = subtotal + tax + deliveryCharge;
-  const canCheckout = orderType === "pickup" || address.trim().length > 8;
+  const canCheckout = isSellerPaymentFlow ? true : orderType === "pickup" || address.trim().length > 8;
+
+  useEffect(() => {
+    window.sessionStorage.setItem(
+      "wine-pub-cart-ui",
+      JSON.stringify({
+        orderType,
+        address,
+        sellerPaymentOption,
+      })
+    );
+  }, [orderType, address, sellerPaymentOption]);
 
   const handleCheckout = async () => {
     if (!canCheckout) {
       return;
     }
     setCheckoutMessage("");
+
+    if (isSellerPaymentFlow) {
+      navigate("/checkout/delivery", {
+        state: {
+          flow: "seller-payment",
+          paymentOption: sellerPaymentOption,
+        },
+      });
+      return;
+    }
 
     if (orderType === "pickup") {
       navigate("/checkout/pickup");
@@ -57,6 +94,12 @@ export const CartPage = () => {
     <div className="bg-[#0a0a0a] min-h-screen text-slate-100 pt-32 pb-24 px-4 md:px-8">
       <div className="container mx-auto max-w-6xl">
         <h1 className="text-4xl md:text-5xl font-serif text-white font-bold mb-12 border-b border-[#333] pb-6">Your Order</h1>
+
+        {flowNotice && (
+          <div className="mb-6 rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+            {flowNotice}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-6">
@@ -127,48 +170,78 @@ export const CartPage = () => {
                   <span className="text-white">${tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>{orderType === "delivery" ? "Delivery" : "Pickup"}</span>
+                  <span>{isSellerPaymentFlow ? "Seller Flow" : orderType === "delivery" ? "Delivery" : "Pickup"}</span>
                   <span className="text-white">${deliveryCharge.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="space-y-5 mb-7 border-b border-[#333] pb-6">
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-[#D4AF37] mb-2">Order Type</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setOrderType("pickup")}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${
-                        orderType === "pickup"
-                          ? "bg-[#D4AF37] text-black border-[#D4AF37]"
-                          : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#D4AF37]/60"
-                      }`}
-                    >
-                      Pub Pickup
-                    </button>
-                    <button
-                      onClick={() => setOrderType("delivery")}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${
-                        orderType === "delivery"
-                          ? "bg-[#D4AF37] text-black border-[#D4AF37]"
-                          : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#D4AF37]/60"
-                      }`}
-                    >
-                      Home Delivery
-                    </button>
-                  </div>
-                </div>
-
-                {orderType === "delivery" && (
+                {isSellerPaymentFlow ? (
                   <div>
-                    <p className="text-xs uppercase tracking-widest text-[#D4AF37] mb-2">Delivery Address</p>
-                    <textarea
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      placeholder="Enter full delivery address"
-                      className="w-full min-h-[88px] bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
-                    />
+                    <p className="text-xs uppercase tracking-widest text-[#D4AF37] mb-2">Payment Mode</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setSellerPaymentOption("prepaid")}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${
+                          sellerPaymentOption === "prepaid"
+                            ? "bg-[#D4AF37] text-black border-[#D4AF37]"
+                            : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#D4AF37]/60"
+                        }`}
+                      >
+                        Prepayment
+                      </button>
+                      <button
+                        onClick={() => setSellerPaymentOption("cod")}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${
+                          sellerPaymentOption === "cod"
+                            ? "bg-[#D4AF37] text-black border-[#D4AF37]"
+                            : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#D4AF37]/60"
+                        }`}
+                      >
+                        COD
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  <>
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-[#D4AF37] mb-2">Order Type</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => setOrderType("pickup")}
+                          className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${
+                            orderType === "pickup"
+                              ? "bg-[#D4AF37] text-black border-[#D4AF37]"
+                              : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#D4AF37]/60"
+                          }`}
+                        >
+                          Pub Pickup
+                        </button>
+                        <button
+                          onClick={() => setOrderType("delivery")}
+                          className={`px-3 py-2 rounded-lg text-xs font-bold border transition-colors ${
+                            orderType === "delivery"
+                              ? "bg-[#D4AF37] text-black border-[#D4AF37]"
+                              : "bg-transparent text-gray-300 border-[#3a3a3a] hover:border-[#D4AF37]/60"
+                          }`}
+                        >
+                          Home Delivery
+                        </button>
+                      </div>
+                    </div>
+
+                    {orderType === "delivery" && (
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-[#D4AF37] mb-2">Delivery Address</p>
+                        <textarea
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          placeholder="Enter full delivery address"
+                          className="w-full min-h-[88px] bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               
@@ -189,7 +262,9 @@ export const CartPage = () => {
               {checkoutMessage && <div className="mt-4 text-sm text-red-300">{checkoutMessage}</div>}
 
               <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed">
-                Secure checkout enabled. Next step lets you choose payment flow based on pickup or home delivery.
+                {isSellerPaymentFlow
+                  ? "Secure checkout enabled. Continue to complete seller payment flow."
+                  : "Secure checkout enabled. Next step lets you choose payment flow based on pickup or home delivery."}
               </div>
             </div>
           </div>
