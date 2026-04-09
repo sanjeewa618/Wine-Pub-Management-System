@@ -119,12 +119,18 @@ export const ReservationsPage = () => {
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-slate-100 pt-32 pb-24 px-4 md:px-8">
       <div className="container mx-auto max-w-4xl">
-        <div className="text-center mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.45 }}
+          transition={{ duration: 0.9 }}
+          className="text-center mb-16"
+        >
           <h1 className="text-5xl md:text-6xl font-serif text-white font-bold mb-4">Reserve Your Table</h1>
           <p className="text-gray-400 text-lg font-light leading-relaxed max-w-2xl mx-auto">
             Experience an unforgettable evening of premium wines and exquisite dining in our luxurious pub.
           </p>
-        </div>
+        </motion.div>
 
         <div className="bg-[#111] border border-[#333] rounded-2xl overflow-hidden shadow-2xl relative">
           <div className="absolute inset-0 z-0 opacity-10">

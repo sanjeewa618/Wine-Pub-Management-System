@@ -5,6 +5,7 @@ import { useApp } from "../context/AppContext";
 
 const formatLkr = (value: number) => `LKR ${Number(value || 0).toLocaleString()}`;
 const FALLBACK_PRODUCT_IMAGE = "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&q=80&w=1000";
+const ITEMS_PER_PAGE = 9;
 
 const formatCategoryLabel = (value: string) => {
   if (!value) return "Uncategorized";
@@ -49,6 +50,9 @@ export const WinesPage = () => {
   const [activeSize, setActiveSize] = useState("all");
   const [activeCountry, setActiveCountry] = useState("any");
   const [activeType, setActiveType] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const headingRef = React.useRef<HTMLDivElement | null>(null);
+  const productsGridTopRef = React.useRef<HTMLDivElement | null>(null);
 
   const liquorProducts = useMemo(() => products.filter((item) => item.type === "wine"), [products]);
 
@@ -155,6 +159,31 @@ export const WinesPage = () => {
     });
   }, [liquorProducts, activeCategory, searchTerm, activeMinPrice, activeMaxPrice, activeBrand, activeSize, activeCountry, activeType]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
+
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredItems, currentPage]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeCategory, activeMinPrice, activeMaxPrice, activeBrand, activeSize, activeCountry, activeType]);
+
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  React.useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      headingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
+
   const applyFilters = () => {
     setActiveMinPrice(pendingMinPrice);
     setActiveMaxPrice(pendingMaxPrice);
@@ -165,13 +194,25 @@ export const WinesPage = () => {
     setActiveType(pendingType);
   };
 
+  const changePage = (targetPage: number) => {
+    const nextPage = Math.max(1, Math.min(totalPages, targetPage));
+    setCurrentPage(nextPage);
+    productsGridTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   if (liquorProducts.length === 0) {
     return (
       <div className="bg-[#0a0a0a] min-h-screen text-slate-100 pt-32 pb-24 px-4 md:px-8">
-        <div className="container mx-auto text-center py-20">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.9 }}
+          className="container mx-auto text-center py-20"
+        >
           <h1 className="text-4xl md:text-5xl font-serif text-white font-bold mb-4">Liquor & Drinks</h1>
           <p className="text-gray-400">No liquor products found in database. Add a product in MongoDB and refresh.</p>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -179,14 +220,21 @@ export const WinesPage = () => {
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-slate-100 pt-32 pb-24 px-4 md:px-8">
       <div className="container mx-auto">
-        <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <motion.div
+          ref={headingRef}
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.85 }}
+          className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4"
+        >
           <div>
             <h1 className="text-4xl md:text-5xl font-serif text-white font-bold">
               {activeCategory === "all" ? "Liquor & Drinks" : formatCategoryLabel(activeCategory)}
             </h1>
-            <p className="text-gray-400 mt-2">Products are loaded directly from your MongoDB backend.</p>
+            <p className="text-gray-400 mt-2">Explore our curated liquor collection and find the perfect bottle for your mood.</p>
           </div>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 items-start">
           <aside className="bg-transparent border border-[#2b313b] rounded-xl p-6 text-[#e5e7eb]">
@@ -362,16 +410,16 @@ export const WinesPage = () => {
               </button>
             )}
 
-            <motion.div
-              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
-              initial="hidden"
-              animate="visible"
-              variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } }}
-            >
-              {filteredItems.map((item) => (
+            <div ref={productsGridTopRef} />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {paginatedItems.map((item, idx) => (
                 <motion.div
                   key={item.id}
-                  variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.55, delay: idx * 0.04 }}
                   className="bg-[#111] border border-[#222] rounded-xl overflow-hidden group hover:border-[#E3C06A]/50 transition-colors"
                 >
                   <div className="h-52 relative overflow-hidden bg-black">
@@ -418,15 +466,54 @@ export const WinesPage = () => {
                   </div>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
+
+            {filteredItems.length > 0 && (
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-sm text-gray-400">
+                  Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                  {Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)} of {filteredItems.length}
+                </p>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => changePage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-2 rounded-md border border-[#2c313f] text-xs font-bold uppercase tracking-wider text-gray-200 hover:border-[#E3C06A]/60 disabled:opacity-45 disabled:cursor-not-allowed"
+                    >
+                      Prev
+                    </button>
+
+                    <span className="text-sm text-gray-300">
+                      Page {currentPage} / {totalPages}
+                    </span>
+
+                    <button
+                      onClick={() => changePage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-2 rounded-md border border-[#2c313f] text-xs font-bold uppercase tracking-wider text-gray-200 hover:border-[#E3C06A]/60 disabled:opacity-45 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         {filteredItems.length === 0 && (
-          <div className="py-16 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.75 }}
+            className="py-16 text-center"
+          >
             <h2 className="text-2xl font-serif text-white mb-2">No products found</h2>
             <p className="text-gray-400">Try another search or category.</p>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

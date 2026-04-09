@@ -8,9 +8,9 @@ export const LandingPage = () => {
   const { products, addToCart } = useApp();
   const topWines = products.filter((p) => p.type === "wine").slice(0, 4);
 
-  const heroBgUrl = "https://images.unsplash.com/photo-1730149431617-64f97318c1af?auto=format&fit=crop&q=80&w=2000";
+  const heroBgUrl = new URL("../../images/home_wine1.avif", import.meta.url).href;
   const reservationImgUrl = "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&q=80&w=1600";
-  const aboutImgUrl = "https://images.unsplash.com/photo-1529060532150-a0c935a6d6e5?auto=format&fit=crop&q=80&w=1200";
+  const aboutImgUrl = new URL("../../images/pub3.jpg", import.meta.url).href;
 
   const fadeIn = {
     hidden: { opacity: 0, y: 30 },
@@ -35,7 +35,7 @@ export const LandingPage = () => {
       {/* 1. HERO SECTION */}
       <section className="relative h-screen flex items-center justify-center pt-20">
         <div className="absolute inset-0">
-          <img src={heroBgUrl} alt="Luxury Wine Pub" className="w-full h-full object-cover object-[62%_45%]" />
+          <img src={heroBgUrl} alt="Luxury Wine Pub" className="w-full h-full object-contain object-right brightness-110" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/55 to-transparent"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/20"></div>
         </div>
@@ -63,18 +63,20 @@ export const LandingPage = () => {
             >
               Discover curated wines, reserve your table, and enjoy unforgettable moments in a truly luxurious ambience.
             </motion.p>
-            <motion.div variants={slideInLeft} className="flex flex-col sm:flex-row items-start justify-start space-y-4 sm:space-y-0 sm:space-x-6">
-              <Link 
-                to="/wines" 
-                className="w-full sm:w-auto px-7 py-3 bg-[#0a0a0a]/50 backdrop-blur-sm border border-[#E3C06A] text-[#E3C06A] rounded font-bold uppercase tracking-wider hover:bg-[#E3C06A] hover:text-black transition-all duration-300 text-xs md:text-sm flex items-center justify-center gap-2"
-              >
-                EXPLORE WINES -&gt;
-              </Link>
+            <motion.div variants={slideInLeft} className="flex flex-col sm:flex-row items-start justify-start gap-4 sm:gap-5">
               <Link 
                 to="/reservations" 
-                className="w-full sm:w-auto px-7 py-3 bg-[#E3C06A] text-black rounded font-bold uppercase tracking-wider hover:bg-[#CDA74C] transition-all duration-300 text-xs md:text-sm flex items-center justify-center gap-2"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#E3C06A] px-8 py-3 text-sm font-bold uppercase tracking-wider text-black hover:bg-[#CDA74C] transition-colors"
               >
-                RESERVE A TABLE -&gt;
+                Book A Table
+                <CalendarDays size={16} />
+              </Link>
+              <Link 
+                to="/wines" 
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-[#E3C06A]/60 bg-black/35 px-8 py-3 text-sm font-bold uppercase tracking-wider text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
+              >
+                Explore Drinks
+                <Wine size={16} />
               </Link>
             </motion.div>
           </div>
@@ -116,7 +118,13 @@ export const LandingPage = () => {
       {/* 3. TOP WINES SHOWCASE */}
       <section className="py-24 bg-[#111] border-y border-[#222]">
         <div className="container mx-auto px-4 md:px-8">
-          <div className="flex justify-between items-end mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.85 }}
+            className="flex justify-between items-end mb-12"
+          >
             <div>
               <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-2">Trending Now</h2>
               <h3 className="text-4xl md:text-5xl font-serif text-white font-bold">Popular Wines</h3>
@@ -124,7 +132,7 @@ export const LandingPage = () => {
             <Link to="/wines" className="hidden md:flex items-center text-[#E3C06A] hover:text-white transition-colors text-sm font-bold uppercase tracking-wider">
               View All <ArrowRight size={16} className="ml-2" />
             </Link>
-          </div>
+          </motion.div>
 
           <motion.div 
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
@@ -194,8 +202,15 @@ export const LandingPage = () => {
       {/* 5. HOW IT WORKS */}
       <section className="py-24 bg-[#111] border-t border-[#222]">
         <div className="container mx-auto px-4 md:px-8 text-center">
-          <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-2">Simple Process</h2>
-          <h3 className="text-4xl md:text-5xl font-serif text-white font-bold mb-16">How It Works</h3>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-2">Simple Process</h2>
+            <h3 className="text-4xl md:text-5xl font-serif text-white font-bold mb-16">How It Works</h3>
+          </motion.div>
           
           <motion.div 
             className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto"
@@ -225,8 +240,15 @@ export const LandingPage = () => {
       {/* 6. CUSTOMER REVIEWS */}
       <section className="py-24 bg-[#0a0a0a]">
         <div className="container mx-auto px-4 md:px-8">
-          <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-2 text-center">Testimonials</h2>
-          <h3 className="text-4xl md:text-5xl font-serif text-white font-bold mb-16 text-center">What Our Guests Say</h3>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-2 text-center">Testimonials</h2>
+            <h3 className="text-4xl md:text-5xl font-serif text-white font-bold mb-16 text-center">What Our Guests Say</h3>
+          </motion.div>
           
           <motion.div 
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
@@ -258,29 +280,25 @@ export const LandingPage = () => {
       </section>
 
       {/* 7. ABOUT SECTION */}
-      <section className="py-24 bg-[#111] border-t border-[#222]">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <motion.div 
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <img src={aboutImgUrl} alt="Wine Cellar" className="rounded-xl w-full h-[500px] object-cover border border-[#333]" />
-            </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
+      <section className="relative py-24 border-t border-[#222] overflow-hidden">
+        <div className="absolute inset-0">
+          <img src={aboutImgUrl} alt="Wine Cellar" className="w-full h-full object-cover object-left brightness-125" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/18 via-[#050505]/70 to-[#050505]/92" />
+        </div>
+        <div className="relative container mx-auto px-4 md:px-8">
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="lg:ml-auto lg:max-w-[620px] py-4 md:py-8"
+          >
               <h2 className="text-sm font-bold tracking-widest text-[#E3C06A] uppercase mb-4">Our Story</h2>
               <h3 className="text-4xl md:text-5xl font-serif text-white font-bold mb-8">Crafting Unforgettable Nights</h3>
-              <p className="text-gray-400 leading-relaxed mb-6">
+              <p className="text-gray-200 leading-relaxed mb-6">
                 Founded with a passion for exceptional viticulture and refined hospitality, VinoVerse is more than just a pub—it's an experience. We source our collection directly from the world's most prestigious vineyards to bring you unparalleled quality.
               </p>
-              <p className="text-gray-400 leading-relaxed mb-8">
+              <p className="text-gray-200 leading-relaxed mb-8">
                 Our mission is to create a sanctuary where connoisseurs and novices alike can explore the rich tapestry of wine in a luxurious, welcoming atmosphere.
               </p>
               <div className="flex space-x-6">
@@ -298,7 +316,6 @@ export const LandingPage = () => {
                 </div>
               </div>
             </motion.div>
-          </div>
         </div>
       </section>
 

@@ -8,6 +8,8 @@ import { LandingPage } from "./pages/LandingPage";
 import { AuthPage } from "./pages/AuthPage";
 import { WinesPage } from "./pages/WinesPage";
 import { BitesPage } from "./pages/BitesPage";
+import {AboutPage} from "./pages/AboutPage";
+import { ContactPage } from "./pages/ContactPage";
 import { ReservationsPage } from "./pages/ReservationsPage";
 import { CartPage } from "./pages/CartPage";
 import { PickupCheckoutPage } from "./pages/PickupCheckoutPage";
@@ -98,8 +100,8 @@ export const router = createBrowserRouter([
           { path: "checkout/delivery", element: <DeliveryCheckoutPage /> },
           { path: "orders/:orderId/tracking", element: <OrderTrackingPage /> },
           { path: "bites", element: <BitesPage /> },
-          { path: "about", element: <div className="pt-32 pb-24 text-center min-h-screen text-white"><h1 className="text-4xl font-serif text-[#E3C06A]">About Us</h1></div> },
-          { path: "contact", element: <div className="pt-32 pb-24 text-center min-h-screen text-white"><h1 className="text-4xl font-serif text-[#E3C06A]">Contact Us</h1></div> },
+          { path: "about", element: <AboutPage /> },
+          { path: "contact", element: <ContactPage /> },
         ],
       },
       {
