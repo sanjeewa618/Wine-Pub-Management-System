@@ -1,16 +1,94 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { motion } from "motion/react";
-import { Wine, CalendarDays, Truck, UtensilsCrossed, Star, ArrowRight, ShoppingCart } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { Wine, CalendarDays, Truck, UtensilsCrossed, Star, ArrowRight, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
 export const LandingPage = () => {
   const { products, addToCart } = useApp();
   const topWines = products.filter((p) => p.type === "wine").slice(0, 4);
+  const [activePromoIndex, setActivePromoIndex] = useState(0);
+  const [promoDirection, setPromoDirection] = useState(1);
+  const [isPromoPaused, setIsPromoPaused] = useState(false);
 
   const heroBgUrl = new URL("../../images/home_wine1.avif", import.meta.url).href;
-  const reservationImgUrl = "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&q=80&w=1600";
+  const reservationImgUrl = new URL("../../images/celebrate.webp", import.meta.url).href;
   const aboutImgUrl = new URL("../../images/pub3.jpg", import.meta.url).href;
+  const add1ImgUrl = new URL("../../images/add1.webp", import.meta.url).href;
+  const add2ImgUrl = new URL("../../images/add2.png", import.meta.url).href;
+  const add3ImgUrl = new URL("../../images/add3.png", import.meta.url).href;
+  const add4ImgUrl = new URL("../../images/add4.png", import.meta.url).href;
+  const add5ImgUrl = new URL("../../images/add5.jpg", import.meta.url).href;
+  const add6ImgUrl = new URL("../../images/add6.jpg", import.meta.url).href;
+  const add7ImgUrl = new URL("../../images/add7.png", import.meta.url).href;
+
+  const promoOffers = [
+    {
+      id: "add1",
+      image: add1ImgUrl,
+      buttonClass: "bg-[#E3C06A] text-[#1f1308] hover:bg-[#f0cf7f]",
+      href: "/wines",
+    },
+    {
+      id: "add2",
+      image: add2ImgUrl,
+      buttonClass: "bg-[#9C3F2D] text-white hover:bg-[#b54b36]",
+      href: "/wines",
+    },
+    {
+      id: "add3",
+      image: add3ImgUrl,
+      buttonClass: "bg-[#7B2430] text-white hover:bg-[#953040]",
+      href: "/bites",
+    },
+    {
+      id: "add4",
+      image: add4ImgUrl,
+      buttonClass: "bg-[#4E2A1F] text-[#F7E6D1] hover:bg-[#653627]",
+      href: "/wines",
+    },
+    {
+      id: "add5",
+      image: add5ImgUrl,
+      buttonClass: "bg-[#D9A35F] text-[#22150d] hover:bg-[#e5b879]",
+      href: "/bites",
+    },
+    {
+      id: "add6",
+      image: add6ImgUrl,
+      buttonClass: "bg-[#A66B2B] text-[#130d07] hover:bg-[#be7c34]",
+      href: "/wines",
+    },
+    {
+      id: "add7",
+      image: add7ImgUrl,
+      buttonClass: "bg-[#6D1F2A] text-white hover:bg-[#842637]",
+      href: "/wines",
+    },
+  ];
+
+  const activePromo = promoOffers[activePromoIndex];
+
+  useEffect(() => {
+    if (isPromoPaused) return;
+
+    const timer = window.setInterval(() => {
+      setPromoDirection(1);
+      setActivePromoIndex((prev) => (prev + 1) % promoOffers.length);
+    }, 2000);
+
+    return () => window.clearInterval(timer);
+  }, [isPromoPaused, promoOffers.length]);
+
+  const showNextPromo = () => {
+    setPromoDirection(1);
+    setActivePromoIndex((prev) => (prev + 1) % promoOffers.length);
+  };
+
+  const showPrevPromo = () => {
+    setPromoDirection(-1);
+    setActivePromoIndex((prev) => (prev - 1 + promoOffers.length) % promoOffers.length);
+  };
 
   const fadeIn = {
     hidden: { opacity: 0, y: 30 },
@@ -115,7 +193,102 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* 3. TOP WINES SHOWCASE */}
+      {/* 3. PROMOTIONAL OFFERS STRIP */}
+      <section className="py-16 md:py-20 bg-black border-t border-b border-[#1a1a1a] overflow-hidden relative">
+        <div className="absolute inset-0 bg-black" />
+        <div className="container mx-auto px-4 md:px-8 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+            <div>
+              <p className="text-xs font-bold tracking-[0.22em] uppercase text-[#E3C06A]">Live Promotions</p>
+              <h3 className="text-3xl md:text-4xl font-serif text-white font-bold mt-2">Special Offers At The Pub</h3>
+            </div>
+            <p className="text-sm text-[#d7c5b3] max-w-xl">Top liquor brands, food bundles, and delivery perks updated in real-time for our guests.</p>
+          </div>
+
+          <div
+            className="relative"
+            onMouseEnter={() => setIsPromoPaused(true)}
+            onMouseLeave={() => setIsPromoPaused(false)}
+          >
+            <button
+              type="button"
+              onClick={showPrevPromo}
+              aria-label="Show previous offer"
+              className="absolute left-[-10px] md:left-[-16px] top-1/2 z-20 -translate-y-1/2 h-11 w-11 rounded-full border border-[#d6b35d]/60 bg-[#1a110c]/85 text-[#E3C06A] hover:bg-[#2a1a10] transition-colors flex items-center justify-center"
+            >
+              <ChevronLeft size={20} />
+            </button>
+
+            <div className="overflow-hidden rounded-3xl border border-[#5a3a22] bg-gradient-to-br from-[#1b120d]/96 via-[#120b08]/96 to-[#0e0907]/96 shadow-[0_14px_40px_rgba(22,10,5,0.55)]">
+              <AnimatePresence initial={false} custom={promoDirection} mode="wait">
+                <motion.article
+                  key={activePromo.id}
+                  custom={promoDirection}
+                  initial={{ x: promoDirection > 0 ? "100%" : "-100%", opacity: 0.7 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: promoDirection > 0 ? "-100%" : "100%", opacity: 0.7 }}
+                  transition={{ duration: 0.4, ease: [0.22, 0.75, 0.2, 1] }}
+                  className="relative min-h-[420px] lg:h-[470px] overflow-hidden"
+                >
+                  <img
+                    src={activePromo.image}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 h-full w-full object-cover object-center scale-105 blur-[2px] brightness-[0.42]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/12 to-black/18" />
+                  <div className="relative z-10 h-full w-full p-3 md:p-4">
+                    <img
+                      src={activePromo.image}
+                      alt={`${activePromo.id} advertisement`}
+                      className="h-full w-full object-contain object-center"
+                    />
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 z-20 p-5 md:p-7 flex justify-center">
+                    <Link
+                      to={activePromo.href}
+                      className={`inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-bold uppercase tracking-[0.14em] shadow-[0_8px_20px_rgba(0,0,0,0.28)] transition-colors ${activePromo.buttonClass}`}
+                    >
+                      Shop Now <ArrowRight size={16} />
+                    </Link>
+                  </div>
+                </motion.article>
+              </AnimatePresence>
+            </div>
+
+            <button
+              type="button"
+              onClick={showNextPromo}
+              aria-label="Show next offer"
+              className="absolute right-[-10px] md:right-[-16px] top-1/2 z-20 -translate-y-1/2 h-11 w-11 rounded-full border border-[#d6b35d]/60 bg-[#1a110c]/85 text-[#E3C06A] hover:bg-[#2a1a10] transition-colors flex items-center justify-center"
+            >
+              <ChevronRight size={20} />
+            </button>
+
+            <div className="mt-5 flex items-center justify-center gap-2">
+              {promoOffers.map((offer, index) => (
+                <button
+                  key={offer.id}
+                  type="button"
+                  onClick={() => {
+                    setPromoDirection(index > activePromoIndex ? 1 : -1);
+                    setActivePromoIndex(index);
+                  }}
+                  aria-label={`Show ${offer.id} offer`}
+                  className={`h-2.5 rounded-full transition-all ${
+                    index === activePromoIndex ? "w-9 bg-[#E3C06A]" : "w-2.5 bg-[#5d4030] hover:bg-[#8a6147]"
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="mt-3 text-center text-xs text-[#b99f8a] uppercase tracking-[0.15em]">
+              {isPromoPaused ? "Autoplay paused" : "Autoplay every 2 seconds"}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. TOP WINES SHOWCASE */}
       <section className="py-24 bg-[#111] border-y border-[#222]">
         <div className="container mx-auto px-4 md:px-8">
           <motion.div
@@ -168,11 +341,12 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* 4. RESERVATION PROMO */}
+      {/* 5. RESERVATION PROMO */}
       <section className="py-32 relative overflow-hidden">
         <div className="absolute inset-0">
-          <img src={reservationImgUrl} alt="Dining Setup" className="w-full h-full object-cover object-center opacity-50" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/90 via-[#0a0a0a]/55 to-[#0a0a0a]/15"></div>
+          <img src={reservationImgUrl} alt="VIP celebration toast" className="w-full h-full object-cover object-center opacity-55" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/72 via-[#0a0a0a]/52 to-[#0a0a0a]/14"></div>
+          <div className="absolute inset-y-0 left-0 w-[62%] bg-gradient-to-r from-[#050505]/30 via-[#050505]/12 to-transparent"></div>
         </div>
         <div className="container mx-auto px-4 md:px-8 relative z-10">
           <motion.div 
@@ -199,7 +373,7 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* 5. HOW IT WORKS */}
+      {/* 6. HOW IT WORKS */}
       <section className="py-24 bg-[#111] border-t border-[#222]">
         <div className="container mx-auto px-4 md:px-8 text-center">
           <motion.div
@@ -237,7 +411,7 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* 6. CUSTOMER REVIEWS */}
+      {/* 7. CUSTOMER REVIEWS */}
       <section className="py-24 bg-[#0a0a0a]">
         <div className="container mx-auto px-4 md:px-8">
           <motion.div
