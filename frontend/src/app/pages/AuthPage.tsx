@@ -3,6 +3,25 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { useApp, Role } from "../context/AppContext";
 import { Wine, Facebook, Chrome, Eye, EyeOff } from "lucide-react";
 
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        oauth2?: {
+          initTokenClient: (config: {
+            client_id: string;
+            scope: string;
+            callback: (response: { access_token?: string; error?: string }) => void;
+            error_callback?: () => void;
+          }) => {
+            requestAccessToken: (options?: { prompt?: string }) => void;
+          };
+        };
+      };
+    };
+  }
+}
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
 const NAME_REGEX = /^[A-Za-z][A-Za-z\s]{1,59}$/;
@@ -18,9 +37,10 @@ export const AuthPage = () => {
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode") === "register" ? "register" : "login";
   const [isLogin, setIsLogin] = useState(mode === "login");
-  const { login, register } = useApp();
+  const { login, googleLogin, register } = useApp();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -43,6 +63,23 @@ export const AuthPage = () => {
       role: "customer",
     });
   }, [mode]);
+
+  useEffect(() => {
+    const hasGoogleScript = document.querySelector('script[data-google-identity="true"]');
+    if (hasGoogleScript && window.google?.accounts?.oauth2) {
+      setGoogleReady(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.dataset.googleIdentity = "true";
+    script.onload = () => setGoogleReady(Boolean(window.google?.accounts?.oauth2));
+    script.onerror = () => setGoogleReady(false);
+    document.head.appendChild(script);
+  }, []);
 
   const navigateByRole = (role: Role) => {
     if (role === "admin") navigate("/admin");
@@ -105,6 +142,53 @@ export const AuthPage = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    const googleClientId =
+      ((import.meta as ImportMeta & { env?: { VITE_GOOGLE_CLIENT_ID?: string } }).env?.VITE_GOOGLE_CLIENT_ID || "").trim();
+
+    if (!googleClientId) {
+      setErrorMessage("Google sign-in is not configured. Add VITE_GOOGLE_CLIENT_ID to frontend/.env and restart the frontend server.");
+      return;
+    }
+
+    if (!window.google?.accounts?.oauth2) {
+      setErrorMessage("Google sign-in is not ready yet. Please try again.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const tokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: googleClientId,
+      scope: "openid email profile",
+      callback: async (tokenResponse) => {
+        if (!tokenResponse?.access_token) {
+          setErrorMessage(tokenResponse?.error ? `Google sign-in failed: ${tokenResponse.error}` : "Google sign-in failed");
+          setIsSubmitting(false);
+          return;
+        }
+
+        try {
+          const user = await googleLogin(tokenResponse.access_token);
+          navigateByRole(user.role);
+        } catch (error) {
+          setErrorMessage(error instanceof Error ? error.message : "Google authentication failed");
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+      error_callback: () => {
+        setErrorMessage("Google sign-in popup was closed or blocked.");
+        setIsSubmitting(false);
+      },
+    });
+
+    tokenClient.requestAccessToken({ prompt: "select_account" });
   };
 
   return (
@@ -262,10 +346,12 @@ export const AuthPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isSubmitting || !googleReady}
                 className="h-11 rounded-lg border border-[#333] bg-[#151515] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:border-[#E3C06A] hover:text-[#E3C06A] transition-colors"
               >
                 <Chrome size={16} />
-                Sign in with Google
+                {isSubmitting ? "Please wait..." : "Sign in with Google"}
               </button>
               <button
                 type="button"

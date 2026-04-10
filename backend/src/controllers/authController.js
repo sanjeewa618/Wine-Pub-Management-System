@@ -4,6 +4,7 @@ const { Notification } = require("../models/Notification");
 const { asyncHandler } = require("../utils/asyncHandler");
 const { ApiError } = require("../utils/ApiError");
 const { generateToken } = require("../utils/token");
+const crypto = require("crypto");
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
@@ -142,6 +143,74 @@ const login = asyncHandler(async (req, res) => {
   res.json({ success: true, token, user: sanitizeUser(user) });
 });
 
+const loginWithGoogle = asyncHandler(async (req, res) => {
+  const accessToken = String(req.body?.accessToken || "").trim();
+  if (!accessToken) {
+    throw new ApiError(400, "Google access token is required");
+  }
+
+  const googleClientId = String(process.env.GOOGLE_CLIENT_ID || "").trim();
+  if (!googleClientId) {
+    throw new ApiError(500, "Google authentication is not configured");
+  }
+
+  const googleResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!googleResponse.ok) {
+    throw new ApiError(401, "Google authentication failed");
+  }
+
+  const googleProfile = await googleResponse.json();
+  const email = String(googleProfile?.email || "").trim().toLowerCase();
+  const name = String(googleProfile?.name || "").trim();
+  const avatar = String(googleProfile?.picture || "").trim();
+  const emailVerified = Boolean(googleProfile?.email_verified);
+
+  if (!email || !emailVerified) {
+    throw new ApiError(401, "Your Google account email is not verified");
+  }
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    const generatedPassword = `${crypto.randomBytes(16).toString("hex")}Aa1!`;
+    user = await User.create({
+      name: name || email.split("@")[0],
+      email,
+      password: generatedPassword,
+      role: "customer",
+      status: "active",
+      avatar,
+    });
+
+    await Cart.findOneAndUpdate(
+      { userId: user._id },
+      { userId: user._id, items: [] },
+      { upsert: true, new: true }
+    );
+  }
+
+  if (user.status === "blocked") {
+    throw new ApiError(403, "Your account is blocked. Contact admin");
+  }
+
+  if (user.role === "seller" && user.status !== "active") {
+    throw new ApiError(403, "Seller registration requested. Wait for admin approval");
+  }
+
+  if (!user.avatar && avatar) {
+    user.avatar = avatar;
+    await user.save();
+  }
+
+  const token = generateToken(user._id);
+  res.json({ success: true, token, user: sanitizeUser(user) });
+});
+
 const getMe = asyncHandler(async (req, res) => {
   res.json({ success: true, user: sanitizeUser(req.user) });
 });
@@ -255,4 +324,4 @@ const toggleTwoFactor = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { register, login, getMe, updateMe, changePassword, logout, refreshToken, toggleTwoFactor };
+module.exports = { register, login, loginWithGoogle, getMe, updateMe, changePassword, logout, refreshToken, toggleTwoFactor };

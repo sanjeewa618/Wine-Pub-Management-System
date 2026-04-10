@@ -50,6 +50,7 @@ interface AppContextType {
   isAuthResolved: boolean;
   sessionRefreshKey: number;
   login: (email: string, password: string) => Promise<User>;
+  googleLogin: (accessToken: string) => Promise<User>;
   register: (payload: { name: string; email: string; password: string; role?: Role }) => Promise<{ user: User; requiresApproval?: boolean; message?: string }>;
   logout: () => Promise<void>;
   addToCart: (product: Product, size?: string, quantity?: number) => Promise<void>;
@@ -497,6 +498,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return user;
   };
 
+  const googleLogin = async (accessToken: string) => {
+    const response = await apiRequest<{ token: string; user: any }>("/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ accessToken }),
+    });
+
+    setApiToken(response.token);
+    const user = mapUser(response.user);
+
+    setState((prev) => ({
+      ...prev,
+      user,
+    }));
+    setSessionRefreshKey((prev) => prev + 1);
+
+    await refreshCart();
+    return user;
+  };
+
   const register = async (payload: { name: string; email: string; password: string; role?: Role }) => {
     const response = await apiRequest<{ user: any; requiresApproval?: boolean; message?: string }>("/auth/register", {
       method: "POST",
@@ -730,6 +750,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         isAuthResolved,
         sessionRefreshKey,
         login,
+        googleLogin,
         register,
         logout,
         addToCart,
