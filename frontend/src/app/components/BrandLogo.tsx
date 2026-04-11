@@ -1,5 +1,4 @@
 import React from "react";
-import logoImage from "../../images/logo2.png";
 
 interface BrandLogoProps {
   size?: "sm" | "md" | "lg";
@@ -19,7 +18,7 @@ export const BrandLogo = ({ size = "md", className = "", textClassName = "text-[
   return (
     <div className={`inline-flex items-center gap-2 shrink-0 whitespace-nowrap ${className}`.trim()}>
       <img
-        src={logoImage}
+        src="/images/logo2.png"
         alt="HeaveN8"
         className={`${logoWidth} h-auto object-contain flex-none`}
       />

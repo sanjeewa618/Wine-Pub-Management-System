@@ -1,8 +1,7 @@
 ﻿import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router";
 import { useApp, Role } from "../context/AppContext";
 import { Wine, Facebook, Chrome, Eye, EyeOff } from "lucide-react";
-import authSideImage from "../../images/auth.jpg";
 import { BrandLogo } from "../components/BrandLogo";
 
 declare global {
@@ -41,6 +40,7 @@ export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(mode === "login");
   const { login, googleLogin, register } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -65,7 +65,7 @@ export const AuthPage = () => {
       password: "",
       role: "customer",
     });
-  }, [mode]);
+  }, [mode, location.pathname]);
 
   useEffect(() => {
     const hasGoogleScript = document.querySelector('script[data-google-identity="true"]');
@@ -215,7 +215,7 @@ export const AuthPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.75fr] min-h-[calc(100vh-52px)] sm:min-h-[calc(100vh-56px)]">
           <div className="hidden lg:flex relative border-r border-[#2a2a2a] overflow-hidden">
             <img
-              src={authSideImage}
+              src="/images/auth.jpg"
               alt="HeaveN8 ambience"
               className="absolute inset-0 h-full w-full object-cover"
             />
@@ -246,7 +246,7 @@ export const AuthPage = () => {
               {errorMessage && <p className="mt-4 text-sm text-red-300">{errorMessage}</p>}
             </div>
 
-            <form className="space-y-5 sm:space-y-6 max-w-md mx-auto" onSubmit={handleSubmit}>
+            <form className="space-y-5 sm:space-y-6 max-w-md mx-auto" onSubmit={handleSubmit} autoComplete="off">
               {!isLogin && (
                 <>
                   <div>
@@ -289,12 +289,15 @@ export const AuthPage = () => {
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
                 <input
+                  name="login_email"
                   type="email"
                   placeholder="name@example.com"
                   required
                   value={formData.email}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))
+                  }
                   className="auth-input w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#E3C06A] transition-colors"
+                  autoComplete="off"
                 />
               </div>
 
@@ -302,12 +305,15 @@ export const AuthPage = () => {
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Password</label>
                 <div className="relative">
                   <input
+                    name="login_password"
                     type={showPassword ? "text" : "password"}
                     placeholder="********"
                     required
                     value={formData.password}
-                    onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
+                    onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))
+                  }
                     className="auth-input w-full bg-[#1a1a1a] border border-[#333] text-white px-4 py-3 pr-12 rounded-lg focus:outline-none focus:border-[#E3C06A] transition-colors"
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"

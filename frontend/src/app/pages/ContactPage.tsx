@@ -2,7 +2,6 @@
 import { Link } from "react-router";
 import { motion } from "motion/react";
 import { Clock3, Mail, MapPin, Phone, Send } from "lucide-react";
-import contactImage from "../../images/contact1.png";
 
 const contactCards = [
   {
@@ -39,7 +38,7 @@ export const ContactPage = () => {
       <section className="container mx-auto px-4 md:px-8">
         <div className="relative overflow-hidden rounded-3xl border border-[#252525] bg-[#0f0f0f] min-h-[500px]">
           <img
-            src={contactImage}
+            src="/images/contact1.png"
             alt="Customer support contact background"
             className="absolute inset-0 h-full w-full object-cover object-center brightness-75"
           />
