@@ -2,6 +2,8 @@
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { useApp, Role } from "../context/AppContext";
 import { Wine, Facebook, Chrome, Eye, EyeOff } from "lucide-react";
+import authSideImage from "../../images/auth.jpg";
+import { BrandLogo } from "../components/BrandLogo";
 
 declare global {
   interface Window {
@@ -50,6 +52,7 @@ export const AuthPage = () => {
     password: "",
     role: "customer" as Exclude<Role, "guest">,
   });
+  const isDev = Boolean((import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV);
 
   useEffect(() => {
     setIsLogin(mode === "login");
@@ -152,7 +155,11 @@ export const AuthPage = () => {
       ((import.meta as ImportMeta & { env?: { VITE_GOOGLE_CLIENT_ID?: string } }).env?.VITE_GOOGLE_CLIENT_ID || "").trim();
 
     if (!googleClientId) {
-      setErrorMessage("Google sign-in is not configured. Add VITE_GOOGLE_CLIENT_ID to frontend/.env and restart the frontend server.");
+      setErrorMessage(
+        isDev
+          ? "Google sign-in is not configured. Add VITE_GOOGLE_CLIENT_ID to frontend/src/.env and restart the frontend server."
+          : "Google sign-in is currently unavailable. Please try again later."
+      );
       return;
     }
 
@@ -168,7 +175,10 @@ export const AuthPage = () => {
       scope: "openid email profile",
       callback: async (tokenResponse) => {
         if (!tokenResponse?.access_token) {
-          setErrorMessage(tokenResponse?.error ? `Google sign-in failed: ${tokenResponse.error}` : "Google sign-in failed");
+          if (isDev && tokenResponse?.error) {
+            console.warn("Google sign-in failed", tokenResponse.error);
+          }
+          setErrorMessage("Google sign-in failed. Please try again.");
           setIsSubmitting(false);
           return;
         }
@@ -194,7 +204,7 @@ export const AuthPage = () => {
   return (
     <div className="min-h-screen bg-[#090909]">
       <div className="w-full min-h-screen bg-[#111] border-y border-[#2a2a2a] shadow-2xl overflow-hidden">
-        <div className="px-6 pt-5">
+        <div className="px-4 sm:px-6 pt-4 sm:pt-5">
           <Link
             to="/"
             className="inline-flex items-center text-sm font-semibold text-[#E3C06A] hover:text-white transition-colors"
@@ -202,43 +212,41 @@ export const AuthPage = () => {
             &larr; Home
           </Link>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.75fr] min-h-[calc(100vh-56px)]">
-          <div className="hidden lg:flex relative border-r border-[#2a2a2a] bg-[radial-gradient(circle_at_20%_20%,rgba(212,175,55,0.20),transparent_40%),radial-gradient(circle_at_75%_30%,rgba(212,175,55,0.35),transparent_45%),linear-gradient(145deg,#121212_0%,#0b0b0b_50%,#151515_100%)] overflow-hidden">
-            <div className="absolute top-20 left-16 h-40 w-40 rounded-full border border-[#E3C06A]/25 bg-[#E3C06A]/8 blur-sm"></div>
-            <div className="absolute bottom-20 right-14 h-56 w-56 rounded-full border border-[#E3C06A]/30 bg-[#E3C06A]/20 blur-sm"></div>
-            <div className="absolute top-1/2 left-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10"></div>
-
-            <div className="relative z-10 p-12 self-center w-full">
-              <div className="grid grid-cols-2 gap-4 max-w-md mx-auto mb-10">
-                <div className="h-24 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md"></div>
-                <div className="h-24 rounded-2xl border border-[#E3C06A]/30 bg-[#E3C06A]/10 backdrop-blur-md"></div>
-                <div className="h-24 rounded-2xl border border-[#E3C06A]/30 bg-[#E3C06A]/15 backdrop-blur-md"></div>
-                <div className="h-24 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md"></div>
-              </div>
-
-              <h2 className="text-4xl font-serif font-bold text-white mb-3 text-center">VinoVerse Lounge</h2>
-              <p className="text-gray-300 text-sm leading-relaxed max-w-sm mx-auto text-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.75fr] min-h-[calc(100vh-52px)] sm:min-h-[calc(100vh-56px)]">
+          <div className="hidden lg:flex relative border-r border-[#2a2a2a] overflow-hidden">
+            <img
+              src={authSideImage}
+              alt="HeaveN8 ambience"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/25" />
+            <div className="absolute top-8 left-8 z-10">
+              <BrandLogo size="sm" textClassName="!text-black" />
+            </div>
+            <div className="relative z-10 mt-auto p-8 xl:p-12">
+              <h2 className="text-4xl font-serif font-bold text-white mb-3">HeaveN8 Lounge</h2>
+              <p className="text-gray-200 text-sm leading-relaxed max-w-sm">
                 Discover premium wines, reserve your table, and enjoy curated bites in a luxury ambience.
               </p>
             </div>
           </div>
 
-          <div className="p-8 md:p-10">
-            <div className="text-center mb-8">
+          <div className="p-4 sm:p-6 md:p-8 lg:p-10">
+            <div className="text-center mb-6 sm:mb-8">
               <div className="h-16 w-16 bg-[#E3C06A] rounded-full mx-auto flex items-center justify-center mb-4 border border-[#E3C06A]">
                 <Wine className="text-black" size={32} />
               </div>
-              <h1 className="text-3xl font-serif text-white font-bold mb-2">
+              <h1 className="text-2xl sm:text-3xl font-serif text-white font-bold mb-2">
                 {isLogin ? "Welcome Back" : "Create Account"}
               </h1>
               <p className="text-gray-400 text-sm">
-                {isLogin ? "Enter your credentials to access your account." : "Join VinoVerse for an exclusive experience."}
+                {isLogin ? "Enter your credentials to access your account." : "Join HeaveN8 for an exclusive experience."}
               </p>
               {successMessage && <p className="mt-4 text-sm text-green-400 font-semibold">{successMessage}</p>}
               {errorMessage && <p className="mt-4 text-sm text-red-300">{errorMessage}</p>}
             </div>
 
-            <form className="space-y-6 max-w-md mx-auto" onSubmit={handleSubmit}>
+            <form className="space-y-5 sm:space-y-6 max-w-md mx-auto" onSubmit={handleSubmit}>
               {!isLogin && (
                 <>
                   <div>
@@ -351,7 +359,7 @@ export const AuthPage = () => {
                 className="h-11 rounded-lg border border-[#333] bg-[#151515] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:border-[#E3C06A] hover:text-[#E3C06A] transition-colors"
               >
                 <Chrome size={16} />
-                {isSubmitting ? "Please wait..." : "Sign in with Google"}
+                Sign in with Google
               </button>
               <button
                 type="button"
@@ -378,4 +386,5 @@ export const AuthPage = () => {
     </div>
   );
 };
+
 

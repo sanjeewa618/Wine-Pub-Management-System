@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
 import { CalendarDays, Handshake, Headset, ShieldCheck, Smile, Store, Wine } from "lucide-react";
@@ -6,7 +6,7 @@ import { CalendarDays, Handshake, Headset, ShieldCheck, Smile, Store, Wine } fro
 const highlights = [
   {
     title: "Wine & Liquor Variety",
-    description: "From light reds to bold spirits, VinoVerse brings together rich liquor categories for every mood and moment.",
+    description: "From light reds to bold spirits, HeaveN8 brings together rich liquor categories for every mood and moment.",
     icon: Wine,
   },
   {
@@ -82,7 +82,7 @@ export const AboutPage = () => {
               transition={{ duration: 0.8 }}
               className="text-5xl md:text-7xl font-serif text-white font-bold leading-tight"
             >
-              About VinoVerse
+              About HeaveN8
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 24 }}
@@ -91,7 +91,7 @@ export const AboutPage = () => {
               transition={{ duration: 0.85, delay: 0.12 }}
               className="mt-6 mx-auto max-w-4xl text-[#F5EAD0] text-base md:text-2xl leading-relaxed md:leading-[1.75] font-serif italic font-medium tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]"
             >
-              "At VinoVerse, we bring together premium wines, crafted cocktails, and welcoming hospitality to create nights
+              "At HeaveN8, we bring together premium wines, crafted cocktails, and welcoming hospitality to create nights
               that feel effortless from start to finish. From easy table reservations to smooth ordering and attentive
               service, every detail is designed so you can relax, celebrate, and enjoy memorable moments with the people
               who matter most."
@@ -153,8 +153,8 @@ export const AboutPage = () => {
           transition={{ duration: 0.8 }}
           className="flex items-end justify-between gap-4 mb-6"
         >
-          <h2 className="text-3xl md:text-4xl font-serif text-white font-bold">The VinoVerse Mood</h2>
-          <p className="text-sm text-[#E3C06A] uppercase tracking-[0.2em] font-bold">Wine • Customers • Service</p>
+          <h2 className="text-3xl md:text-4xl font-serif text-white font-bold">The HeaveN8 Mood</h2>
+          <p className="text-sm text-[#E3C06A] uppercase tracking-[0.2em] font-bold">Wine â€¢ Customers â€¢ Service</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -220,7 +220,7 @@ export const AboutPage = () => {
           <div>
             <h3 className="text-2xl md:text-3xl font-serif text-white font-bold">Ready To Spend A Free, Happy Night?</h3>
             <p className="mt-2 text-gray-300 text-sm md:text-base">
-              Reserve your table early, enjoy your favorite drinks, and let VinoVerse handle the rest.
+              Reserve your table early, enjoy your favorite drinks, and let HeaveN8 handle the rest.
             </p>
           </div>
           <div className="flex items-center gap-2 text-[#E3C06A]">
@@ -234,3 +234,4 @@ export const AboutPage = () => {
 };
 
 export default AboutPage;
+

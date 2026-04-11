@@ -2,6 +2,7 @@
 import { Link, useLocation } from "react-router";
 import { useApp } from "../context/AppContext";
 import { Search, ShoppingCart, User, Menu, X, LogOut, LayoutDashboard, Settings } from "lucide-react";
+import { BrandLogo } from "./BrandLogo";
 
 export const Navbar = () => {
   const { state, logout } = useApp();
@@ -33,19 +34,14 @@ export const Navbar = () => {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-black/80 backdrop-blur-md shadow-lg py-4"
-          : "bg-transparent py-6"
+          ? "bg-black/80 backdrop-blur-md shadow-lg py-3 lg:py-4"
+          : "bg-transparent py-4 lg:py-6"
       }`}
     >
-      <div className="container mx-auto px-4 md:px-8 flex items-center justify-between">
+      <div className="container mx-auto px-3 sm:px-4 md:px-8 flex items-center justify-between gap-3">
         {/* Logo */}
-        <Link to="/" className="flex flex-col">
-          <span className="text-2xl font-serif text-[#E3C06A] font-bold tracking-wider flex items-center gap-2">
-            ðŸ· VinoVerse
-          </span>
-          <span className="text-xs text-slate-300 uppercase tracking-widest hidden md:block">
-            Sip. Reserve. Experience.
-          </span>
+        <Link to="/" className="flex shrink-0 items-center">
+          <BrandLogo size="sm" />
         </Link>
 
         {/* Desktop Links */}
@@ -137,19 +133,35 @@ export const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          className="lg:hidden text-white hover:text-[#E3C06A] transition-colors"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Mobile Actions */}
+        <div className="lg:hidden flex items-center gap-3">
+          <Link
+            to="/cart"
+            className="relative text-white hover:text-[#E3C06A] transition-colors p-1"
+            aria-label="Open cart"
+          >
+            <ShoppingCart size={22} />
+            {totalCartItems > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[#E3C06A] text-black text-[10px] font-bold h-4 min-w-4 px-1 rounded-full flex items-center justify-center">
+                {totalCartItems}
+              </span>
+            )}
+          </Link>
+
+          <button
+            className="text-white hover:text-[#E3C06A] transition-colors p-1"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close mobile menu" : "Open mobile menu"}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 right-0 bg-black/95 backdrop-blur-md border-t border-[#333] py-4 px-4 shadow-xl">
-          <div className="flex flex-col space-y-4">
+        <div className="lg:hidden absolute top-full left-0 right-0 bg-black/95 backdrop-blur-md border-t border-[#333] py-4 px-4 shadow-xl max-h-[calc(100vh-72px)] overflow-y-auto">
+          <div className="flex flex-col space-y-4 pb-2">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -161,6 +173,18 @@ export const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            <Link
+              to="/cart"
+              className="text-white text-lg font-medium hover:text-[#E3C06A] transition-colors flex items-center justify-between"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <span>Cart</span>
+              {totalCartItems > 0 && (
+                <span className="bg-[#E3C06A] text-black text-xs font-bold px-2 py-1 rounded-full min-w-6 text-center">
+                  {totalCartItems}
+                </span>
+              )}
+            </Link>
             <div className="h-px w-full bg-[#333] my-2"></div>
             {state.user ? (
               <>
@@ -205,4 +229,5 @@ export const Navbar = () => {
     </nav>
   );
 };
+
 

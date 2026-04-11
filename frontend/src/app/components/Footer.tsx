@@ -1,17 +1,16 @@
 ﻿import React from "react";
 import { Link } from "react-router";
 import { Facebook, Instagram, Twitter, Mail, MapPin, Phone } from "lucide-react";
+import { BrandLogo } from "./BrandLogo";
 
 export const Footer = () => {
   return (
-    <footer className="bg-black text-white pt-16 pb-8 border-t border-[#333]">
+    <footer className="bg-black text-white pt-12 md:pt-16 pb-8 border-t border-[#333]">
       <div className="container mx-auto px-4 md:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-9 md:gap-12 mb-12">
           {/* Brand */}
           <div>
-            <span className="text-2xl font-serif text-[#E3C06A] font-bold tracking-wider mb-4 block">
-              ðŸ· VinoVerse
-            </span>
+            <BrandLogo size="md" className="mb-4" />
             <p className="text-gray-400 text-sm mb-6 max-w-xs leading-relaxed">
               Sip. Reserve. Experience. The premium destination for wine lovers, offering curated selections, exclusive reservations, and unforgettable nights.
             </p>
@@ -53,7 +52,7 @@ export const Footer = () => {
               </li>
               <li className="flex items-center space-x-3">
                 <Mail size={18} className="text-[#E3C06A] shrink-0" />
-                <span>hello@vinoverse.com</span>
+                <span>hello@heaven8.com</span>
               </li>
               <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
               <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
@@ -83,9 +82,9 @@ export const Footer = () => {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-[#333] flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-          <p>&copy; {new Date().getFullYear()} VinoVerse. All rights reserved.</p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
+        <div className="pt-8 border-t border-[#333] flex flex-col md:flex-row justify-between items-center md:items-start gap-4 text-sm text-gray-500 text-center md:text-left">
+          <p>&copy; {new Date().getFullYear()} HeaveN8. All rights reserved.</p>
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2">
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>
@@ -94,4 +93,5 @@ export const Footer = () => {
     </footer>
   );
 };
+
 

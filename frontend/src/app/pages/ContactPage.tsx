@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
 import { Clock3, Mail, MapPin, Phone, Send } from "lucide-react";
@@ -7,7 +7,7 @@ import contactImage from "../../images/contact1.png";
 const contactCards = [
   {
     title: "Email",
-    value: "hello@vinoverse.com",
+    value: "hello@heaven8.com",
     sub: "We usually reply within 24 hours.",
     icon: Mail,
   },
@@ -53,7 +53,7 @@ export const ContactPage = () => {
               transition={{ duration: 0.75 }}
               className="text-xs md:text-sm uppercase tracking-[0.22em] text-[#E3C06A] font-bold"
             >
-              Contact VinoVerse
+              Contact HeaveN8
             </motion.p>
             <motion.h1
               initial={{ opacity: 0, y: 28 }}
@@ -72,7 +72,7 @@ export const ContactPage = () => {
               className="mt-6 mx-auto max-w-3xl text-gray-200 text-sm md:text-base leading-relaxed opacity-85"
             >
               Reach out for table reservations, private events, menu support, or general inquiries. Our team is ready to help
-              you enjoy a smooth and memorable VinoVerse experience.
+              you enjoy a smooth and memorable HeaveN8 experience.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -208,3 +208,4 @@ export const ContactPage = () => {
 };
 
 export default ContactPage;
+

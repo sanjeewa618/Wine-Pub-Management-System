@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { apiRequest } from "../services/api";
 import { EditableProductItem, ProductEditorModal, ProductEditorMode } from "../components/ProductEditorModal";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { downloadReceiptPdf } from "../utils/receiptPdf";
 import { useApp } from "../context/AppContext";
 
@@ -234,7 +234,7 @@ const sectionData: Record<
     ],
     queueTitle: "User Management Queue",
     queue: [
-      { name: "Approve Admin Invite", detail: "pending for manager@vinov.com", status: "high" },
+      { name: "Approve Admin Invite", detail: "pending for manager@heaven8.com", status: "high" },
       { name: "Review Blocked Accounts", detail: "18 users flagged by risk engine", status: "medium" },
       { name: "Cleanup Dormant Users", detail: "accounts inactive for 180+ days", status: "low" },
     ],
@@ -1175,7 +1175,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
       { label: "Tracking Number", value: payment.orderId?.trackingNumber || "-" },
       { label: "Table Number", value: payment.receiptMeta?.tableNumber || "-" },
       { label: "Delivery Address", value: payment.receiptMeta?.deliveryAddress || "-" },
-      { label: "Card", value: payment.cardLast4 ? `${payment.cardBrand || "CARD"} •••• ${payment.cardLast4}` : "-" },
+      { label: "Card", value: payment.cardLast4 ? `${payment.cardBrand || "CARD"} â€¢â€¢â€¢â€¢ ${payment.cardLast4}` : "-" },
     ]);
   };
 
@@ -1478,14 +1478,14 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     const productActivities = wineItems.slice(0, 20).map((item) => ({
       id: `product-${item._id}`,
       title: `${item.name} ${new Date(item.createdAt).getTime() === new Date(item.updatedAt).getTime() ? "added" : "updated"}`,
-      detail: `${item.productType.toUpperCase()} · ${item.category} · Stock ${item.stock}`,
+      detail: `${item.productType.toUpperCase()} Â· ${item.category} Â· Stock ${item.stock}`,
       time: new Date(item.updatedAt || item.createdAt).getTime(),
     }));
 
     const sellerActivities = sellersList.slice(0, 20).map((seller) => ({
       id: `seller-${seller._id}`,
       title: `${seller.name} supplier account ${seller.status === "pending" ? "registered" : seller.status}`,
-      detail: `${seller.email} · ${seller.sellerType || "seller"}`,
+      detail: `${seller.email} Â· ${seller.sellerType || "seller"}`,
       time: new Date(seller.createdAt || Date.now()).getTime(),
     }));
 
@@ -1517,7 +1517,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     const menuActivities = biteItems.slice(0, 20).map((item) => ({
       id: `menu-${item._id}`,
       title: `${item.name} ${new Date(item.createdAt).getTime() === new Date(item.updatedAt).getTime() ? "added" : "updated"}`,
-      detail: `${item.productType.toUpperCase()} · ${item.category} · Stock ${item.stock}`,
+      detail: `${item.productType.toUpperCase()} Â· ${item.category} Â· Stock ${item.stock}`,
       time: new Date(item.updatedAt || item.createdAt).getTime(),
     }));
 
@@ -1527,7 +1527,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
       .map((seller) => ({
         id: `supplier-${seller._id}`,
         title: `${seller.name} ${seller.status === "pending" ? "registration requested" : "supplier account active"}`,
-        detail: `${seller.email} · ${seller.sellerType || "seller"}`,
+        detail: `${seller.email} Â· ${seller.sellerType || "seller"}`,
         time: new Date(seller.createdAt || Date.now()).getTime(),
       }));
 
@@ -1607,7 +1607,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
       {
         label: "Users + Reservations",
         value: `${analyticsUsersCount + analyticsReservations.length}`,
-        delta: `${analyticsUsersCount} users · ${analyticsReservations.length} reservations`,
+        delta: `${analyticsUsersCount} users Â· ${analyticsReservations.length} reservations`,
       },
       {
         label: "Completed Payments",
@@ -1658,25 +1658,20 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
   }, [analyticsOrders]);
 
   const analyticsPaymentMethodData = useMemo(() => {
-    const counts = {
-      card: 0,
-      cash: 0,
-      other: 0,
-    };
+    const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const values = [0, 0, 0, 0, 0, 0, 0];
 
-    analyticsPayments.forEach((payment) => {
-      const method = String(payment.paymentMethod || "other").toLowerCase();
-      if (method === "card") counts.card += 1;
-      else if (method === "cash") counts.cash += 1;
-      else counts.other += 1;
+    analyticsReservations.forEach((reservation) => {
+      const day = new Date(reservation.createdAt).getDay();
+      const mondayIndex = (day + 6) % 7;
+      values[mondayIndex] += 1;
     });
 
-    return [
-      { label: "Card", count: counts.card },
-      { label: "Cash", count: counts.cash },
-      { label: "Other", count: counts.other },
-    ];
-  }, [analyticsPayments]);
+    return labels.map((label, index) => ({
+      label,
+      reservations: values[index],
+    }));
+  }, [analyticsReservations]);
 
   const settingsKpis = useMemo(
     () => [
@@ -1708,12 +1703,12 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
       const kind = isSellerRelatedOrder(order) ? "Seller-related order" : "Customer order";
       const firstItem = order.items?.[0];
       const itemSummary = firstItem
-        ? `${firstItem.name || "Item"}${firstItem.brand ? ` · ${firstItem.brand}` : ""} x${Number(firstItem.quantity || 0)}`
+        ? `${firstItem.name || "Item"}${firstItem.brand ? ` Â· ${firstItem.brand}` : ""} x${Number(firstItem.quantity || 0)}`
         : "No item details";
       return {
         id: order._id,
-        title: `${kind} · ${order.status}`,
-        detail: `${customerName} · ${order.orderType} · ${itemSummary} · ${String(order.paymentMethod || "other").toUpperCase()} · LKR ${Number(order.total || 0).toFixed(2)}`,
+        title: `${kind} Â· ${order.status}`,
+        detail: `${customerName} Â· ${order.orderType} Â· ${itemSummary} Â· ${String(order.paymentMethod || "other").toUpperCase()} Â· LKR ${Number(order.total || 0).toFixed(2)}`,
         time: new Date(order.createdAt).getTime(),
       };
       });
@@ -2187,14 +2182,14 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                         disabled={isApprovingSellerId === seller._id}
                         className="flex-1 rounded-md border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 transition-colors disabled:opacity-60"
                       >
-                        {isApprovingSellerId === seller._id ? "Approving..." : "✓ Approve"}
+                        {isApprovingSellerId === seller._id ? "Approving..." : "âœ“ Approve"}
                       </button>
                       <button
                         onClick={() => void handleBlockSeller(seller as unknown as SellerUser)}
                         disabled={isBlockingSellerId === seller._id}
                         className="flex-1 rounded-md border border-red-400/35 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-60"
                       >
-                        {isBlockingSellerId === seller._id ? "Canceling..." : "✕ Cancel"}
+                        {isBlockingSellerId === seller._id ? "Canceling..." : "âœ• Cancel"}
                       </button>
                     </div>
                   </div>
@@ -2253,13 +2248,13 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <p className="text-sm text-white font-semibold">{item.name}</p>
-                          <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
+                          <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} Â· {item.category}</p>
                         </div>
                         <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border ${Number(item.stock || 0) <= 0 ? "text-red-300 border-red-400/30 bg-red-500/10" : "text-emerald-300 border-emerald-400/30 bg-emerald-500/10"}`}>
                           {Number(item.stock || 0) <= 0 ? "Out" : `Stock ${item.stock}`}
                         </span>
                       </div>
-                      <p className="text-xs text-[#E3C06A] mt-2">LKR {Number(item.price || 0).toFixed(2)} {item.brand ? `· ${item.brand}` : ""}</p>
+                      <p className="text-xs text-[#E3C06A] mt-2">LKR {Number(item.price || 0).toFixed(2)} {item.brand ? `Â· ${item.brand}` : ""}</p>
                       <button
                         onClick={() => openEditProductModal("wine", item)}
                         className="mt-2 rounded-md border border-[#E3C06A]/40 bg-[#E3C06A]/10 px-3 py-1.5 text-[11px] font-semibold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
@@ -2292,7 +2287,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                   {outOfStockLiquors.map((item) => (
                     <div key={item._id} className="rounded-lg border border-red-400/30 bg-red-500/10 p-3">
                       <p className="text-sm text-white font-semibold">{item.name}</p>
-                      <p className="text-xs text-red-200 mt-1 uppercase">{item.productType} · {item.category}</p>
+                      <p className="text-xs text-red-200 mt-1 uppercase">{item.productType} Â· {item.category}</p>
                       <p className="text-xs text-gray-300 mt-1">Brand: {item.brand || "N/A"}</p>
                       <p className="text-xs text-gray-300 mt-1">Last update: {new Date(item.updatedAt || item.createdAt).toLocaleString()}</p>
                     </div>
@@ -2354,13 +2349,13 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <p className="text-sm text-white font-semibold">{item.name}</p>
-                          <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
+                          <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} Â· {item.category}</p>
                         </div>
                         <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border ${Number(item.stock || 0) <= 0 ? "text-red-300 border-red-400/30 bg-red-500/10" : "text-emerald-300 border-emerald-400/30 bg-emerald-500/10"}`}>
                           {Number(item.stock || 0) <= 0 ? "Out" : `Stock ${item.stock}`}
                         </span>
                       </div>
-                      <p className="text-xs text-[#E3C06A] mt-2">LKR {Number(item.price || 0).toFixed(2)} {item.brand ? `· ${item.brand}` : ""}</p>
+                      <p className="text-xs text-[#E3C06A] mt-2">LKR {Number(item.price || 0).toFixed(2)} {item.brand ? `Â· ${item.brand}` : ""}</p>
                       <button
                         onClick={() => openEditProductModal("bite", item)}
                         className="mt-2 rounded-md border border-[#E3C06A]/40 bg-[#E3C06A]/10 px-3 py-1.5 text-[11px] font-semibold text-[#E3C06A] hover:bg-[#E3C06A] hover:text-black transition-colors"
@@ -2393,7 +2388,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                   {outOfStockBitesItems.map((item) => (
                     <div key={item._id} className="rounded-lg border border-red-400/30 bg-red-500/10 p-3">
                       <p className="text-sm text-white font-semibold">{item.name}</p>
-                      <p className="text-xs text-red-200 mt-1 uppercase">{item.productType} · {item.category}</p>
+                      <p className="text-xs text-red-200 mt-1 uppercase">{item.productType} Â· {item.category}</p>
                       <p className="text-xs text-gray-300 mt-1">Brand: {item.brand || "N/A"}</p>
                       <p className="text-xs text-gray-300 mt-1">Last update: {new Date(item.updatedAt || item.createdAt).toLocaleString()}</p>
                     </div>
@@ -2428,7 +2423,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       <div key={payment._id} className="rounded border border-[#2a2a2a] bg-[#111] p-2">
                         <p className="text-xs text-white font-semibold">{payment.reference}</p>
                         <p className="text-[11px] text-gray-400 mt-1">
-                          {(payment.currency || "LKR")} {Number(payment.amount || 0).toFixed(2)} · {payment.paymentMethod || "-"}
+                          {(payment.currency || "LKR")} {Number(payment.amount || 0).toFixed(2)} Â· {payment.paymentMethod || "-"}
                         </p>
                         <button
                           onClick={() => handleViewPaymentReceipt(payment)}
@@ -2457,7 +2452,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       <div key={payment._id} className="rounded border border-[#2a2a2a] bg-[#111] p-2">
                         <p className="text-xs text-white font-semibold">{payment.reference}</p>
                         <p className="text-[11px] text-gray-400 mt-1">
-                          {(payment.currency || "LKR")} {Number(payment.amount || 0).toFixed(2)} · {payment.paymentMethod || "-"}
+                          {(payment.currency || "LKR")} {Number(payment.amount || 0).toFixed(2)} Â· {payment.paymentMethod || "-"}
                         </p>
                         <button
                           onClick={() => handleViewPaymentReceipt(payment)}
@@ -2571,7 +2566,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     return (
                       <div key={order._id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
                         <p className="text-sm text-white font-semibold">{customerName}</p>
-                        <p className="text-xs text-gray-400 mt-1">{order.orderType} · {new Date(order.createdAt).toLocaleString()}</p>
+                        <p className="text-xs text-gray-400 mt-1">{order.orderType} Â· {new Date(order.createdAt).toLocaleString()}</p>
                         <p className="text-xs text-[#E3C06A] mt-1">Tracking: {order.trackingNumber || "N/A"}</p>
                         <div className="mt-2 flex items-center gap-2">
                           <span className="text-[11px] text-gray-300">Status:</span>
@@ -2636,19 +2631,34 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
 
           <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
             <div className="xl:col-span-3 bg-[#111] border border-[#333] rounded-xl p-6">
-              <h2 className="text-white text-lg font-bold mb-4">Payment Methods Trend</h2>
-              <div className="h-[260px]">
+              <div className="flex items-center justify-between mb-4 gap-2">
+                <h2 className="text-white text-lg font-bold">Weekly Reservations Analysis</h2>
+                <button
+                  onClick={() => navigate("/admin/reservations")}
+                  className="inline-flex items-center gap-2 text-[#E3C06A] hover:text-white text-sm font-semibold transition-colors"
+                >
+                  See More <span aria-hidden="true">â†’</span>
+                </button>
+              </div>
+              <div className="h-[320px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analyticsPaymentMethodData}>
-                    <CartesianGrid stroke="#2f2f2f" strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="label" stroke="#9ca3af" tick={{ fill: "#9ca3af", fontSize: 11 }} />
-                    <YAxis stroke="#9ca3af" tick={{ fill: "#9ca3af", fontSize: 11 }} allowDecimals={false} />
+                  <AreaChart data={analyticsPaymentMethodData}>
+                    <defs>
+                      <linearGradient id="colorReservations" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#E3C06A" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#E3C06A" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                    <XAxis dataKey="label" stroke="#666" tick={{ fill: "#666" }} axisLine={false} />
+                    <YAxis stroke="#666" tick={{ fill: "#666" }} axisLine={false} allowDecimals={false} />
                     <Tooltip
-                      cursor={{ fill: "rgba(212,175,55,0.08)" }}
-                      contentStyle={{ background: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff" }}
+                      contentStyle={{ backgroundColor: "#111", borderColor: "#333", color: "#fff" }}
+                      itemStyle={{ color: "#fff" }}
+                      formatter={(value: number) => [`${value}`, "Reservations"]}
                     />
-                    <Bar dataKey="count" fill="#b89328" radius={[6, 6, 0, 0]} />
-                  </BarChart>
+                    <Area type="monotone" dataKey="reservations" stroke="#E3C06A" fillOpacity={1} fill="url(#colorReservations)" />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
@@ -2907,7 +2917,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                         <div>
                           <p className="text-sm text-white font-semibold">{reservation.customerName || reservation.email || "Customer"}</p>
-                          <p className="text-xs text-gray-400">{reservation.date} at {reservation.time} • Guests: {reservation.guestCount}</p>
+                          <p className="text-xs text-gray-400">{reservation.date} at {reservation.time} â€¢ Guests: {reservation.guestCount}</p>
                           <p className="text-xs text-[#E3C06A] mt-1">Tables: {tableDetails}</p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -2947,7 +2957,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                     return (
                       <div key={reservation._id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3">
                         <p className="text-xs text-white font-semibold capitalize">{reservation.status}</p>
-                        <p className="text-xs text-gray-400 mt-1">{reservation.date} {reservation.time} • Guests: {reservation.guestCount}</p>
+                        <p className="text-xs text-gray-400 mt-1">{reservation.date} {reservation.time} â€¢ Guests: {reservation.guestCount}</p>
                         <p className="text-xs text-[#E3C06A] mt-1">Tables: {tableDetails}</p>
                       </div>
                     );
@@ -3104,7 +3114,7 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                           }`}
                         >
                           <p className="text-sm text-white font-semibold">{seller.name}</p>
-                          <p className="text-[11px] text-gray-400 mt-1">{getSellerTypeLabel(seller.sellerType)} · {seller.email}</p>
+                          <p className="text-[11px] text-gray-400 mt-1">{getSellerTypeLabel(seller.sellerType)} Â· {seller.email}</p>
                         </button>
                       ))
                     )}
@@ -3141,8 +3151,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                               />
                               <div className="min-w-0">
                                 <p className="text-sm text-white font-semibold truncate">{item.name}</p>
-                                <p className="text-[11px] text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
-                                <p className="text-[11px] text-[#E3C06A] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {stock}</p>
+                                <p className="text-[11px] text-gray-400 mt-1 uppercase">{item.productType} Â· {item.category}</p>
+                                <p className="text-[11px] text-[#E3C06A] mt-1">LKR {Number(item.price || 0).toFixed(2)} Â· Stock {stock}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
@@ -3218,8 +3228,8 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
                   <div key={item._id} className="rounded-lg border border-[#2a2a2a] bg-[#151515] p-3 flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm text-white font-semibold">{item.name}</p>
-                      <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} · {item.category}</p>
-                      <p className="text-xs text-[#E3C06A] mt-1">LKR {Number(item.price || 0).toFixed(2)} · Stock {item.stock}</p>
+                      <p className="text-xs text-gray-400 mt-1 uppercase">{item.productType} Â· {item.category}</p>
+                      <p className="text-xs text-[#E3C06A] mt-1">LKR {Number(item.price || 0).toFixed(2)} Â· Stock {item.stock}</p>
                     </div>
                     <button
                       onClick={() => handlePickItemForEdit(item)}
@@ -3246,4 +3256,5 @@ export const AdminSectionPage = ({ section, title, subtitle }: AdminSectionPageP
     </div>
   );
 };
+
 

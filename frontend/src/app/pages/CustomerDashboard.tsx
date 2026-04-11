@@ -89,7 +89,7 @@ export const CustomerDashboard = () => {
           </div>
           <div>
             <h1 className="text-3xl font-serif text-white font-bold mb-1">{state.user?.name}</h1>
-            <p className="text-[#E3C06A] font-medium tracking-wider text-sm uppercase">VinoVerse Member</p>
+            <p className="text-[#E3C06A] font-medium tracking-wider text-sm uppercase">HeaveN8 Member</p>
           </div>
         </div>
         <Link to="/customer/settings" className="mt-6 md:mt-0 bg-[#1a1a1a] border border-[#333] text-white px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wider hover:border-[#E3C06A] hover:text-[#E3C06A] transition-colors flex items-center">
@@ -148,4 +148,5 @@ export const CustomerDashboard = () => {
     </div>
   );
 };
+
 

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useApp } from "../context/AppContext";
 import { Package, DollarSign, Star, Wine, RefreshCw, Plus } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { apiRequest } from "../services/api";
 
 export const SellerDashboard = () => {
@@ -81,7 +81,9 @@ export const SellerDashboard = () => {
 
   const weeklySalesByCategory = useMemo(() => {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const categoryTotals = new Map<string, number>();
+    const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const categories = new Set<string>();
+    const dayBuckets = labels.map(() => new Map<string, number>());
 
     sellerOrders.forEach((order) => {
       const createdAt = new Date(order.createdAt).getTime();
@@ -89,21 +91,29 @@ export const SellerDashboard = () => {
         return;
       }
 
+      const day = new Date(order.createdAt).getDay();
+      const mondayIndex = (day + 6) % 7;
+
       (order.items || []).forEach((item: any) => {
         const category = String(item.productType || "item").toLowerCase();
         const sale = Number(item.price || 0) * Number(item.quantity || 0);
-        categoryTotals.set(category, Number(categoryTotals.get(category) || 0) + sale);
+        categories.add(category);
+        const current = Number(dayBuckets[mondayIndex].get(category) || 0);
+        dayBuckets[mondayIndex].set(category, current + sale);
       });
     });
 
-    return Array.from(categoryTotals.entries())
-      .map(([name, sales]) => ({
-        name: name.toUpperCase(),
-        sales: Math.round(sales),
-      }))
-      .sort((a, b) => b.sales - a.sales)
-      .slice(0, 8)
-      .reverse();
+    const categoryList = Array.from(categories).sort();
+
+    return labels.map((label, index) => {
+      const row: Record<string, string | number> = { label };
+
+      categoryList.forEach((category) => {
+        row[category] = Math.round(Number(dayBuckets[index].get(category) || 0));
+      });
+
+      return row;
+    });
   }, [sellerOrders]);
 
   const topSellingItems = useMemo(() => {
@@ -220,16 +230,52 @@ export const SellerDashboard = () => {
           <h3 className="text-lg font-bold text-white mb-6">Total Weekly Sales (Category Wise)</h3>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={weeklySalesByCategory}>
+              <AreaChart data={weeklySalesByCategory}>
+                <defs>
+                  <linearGradient id="sellerCategorySalesFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E3C06A" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#E3C06A" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="sellerCategorySalesFillSecondary" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#CDA74C" stopOpacity={0.7} />
+                    <stop offset="95%" stopColor="#CDA74C" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="sellerCategorySalesFillTertiary" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8B6A2B" stopOpacity={0.7} />
+                    <stop offset="95%" stopColor="#8B6A2B" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
                 <XAxis dataKey="name" stroke="#666" tick={{ fill: "#666" }} axisLine={false} />
-                <YAxis stroke="#666" tick={{ fill: "#666" }} axisLine={false} />
+                <YAxis stroke="#666" tick={{ fill: "#666" }} axisLine={false} tickFormatter={(value) => `LKR ${(Number(value) / 1000).toFixed(0)}k`} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: "#111", borderColor: "#333", color: "#fff" }}
-                  cursor={{ fill: "#1a1a1a" }}
+                  itemStyle={{ color: "#fff" }}
+                  formatter={(value: any) => `LKR ${Number(value).toLocaleString()}`}
+                  cursor={{ fill: "rgba(212,175,55,0.08)" }}
                 />
-                <Line type="monotone" dataKey="sales" stroke="#E3C06A" strokeWidth={3} dot={{ r: 4 }} />
-              </LineChart>
+                {Array.from(new Set(sellerOrders.flatMap((order) => (order.items || []).map((item: any) => String(item.productType || "item").toLowerCase()))))
+                  .sort()
+                  .map((category, index) => {
+                    const fillId = index === 0 ? "url(#sellerCategorySalesFill)" : index === 1 ? "url(#sellerCategorySalesFillSecondary)" : "url(#sellerCategorySalesFillTertiary)";
+                    const stroke = index === 0 ? "#E3C06A" : index === 1 ? "#CDA74C" : "#8B6A2B";
+                    return (
+                      <Area
+                        key={category}
+                        type="monotone"
+                        dataKey={category}
+                        name={category.toUpperCase()}
+                        stroke={stroke}
+                        strokeWidth={2.5}
+                        fillOpacity={1}
+                        fill={fillId}
+                        stackId="1"
+                        dot={{ r: 3, strokeWidth: 2, stroke, fill: "#0f0f0f" }}
+                        activeDot={{ r: 5, strokeWidth: 2, stroke, fill: stroke }}
+                      />
+                    );
+                  })}
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>

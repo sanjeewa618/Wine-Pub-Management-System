@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router";
 import { useApp } from "../context/AppContext";
+import { BrandLogo } from "../components/BrandLogo";
 import { 
   LayoutDashboard, 
   Wine, 
@@ -20,7 +21,10 @@ import {
 export const DashboardLayout = () => {
   const { state, logout, sessionRefreshKey } = useApp();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.innerWidth >= 1024;
+  });
 
   if (!state.user) {
     return <div className="p-8 text-center text-white">Please login to access the dashboard.</div>;
@@ -73,8 +77,8 @@ export const DashboardLayout = () => {
         } fixed inset-y-0 left-0 z-50 w-64 bg-[#111] border-r border-[#333] transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col`}
       >
         <div className="p-6 flex items-center justify-between border-b border-[#333]">
-          <Link to="/" className="text-xl font-serif text-[#E3C06A] font-bold tracking-wider">
-            🍷 VinoVerse
+          <Link to="/">
+            <BrandLogo size="sm" />
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400 hover:text-white">
             <X size={20} />
@@ -137,14 +141,17 @@ export const DashboardLayout = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-[#111] border-b border-[#333] flex items-center px-4 lg:hidden">
+        <header className="h-16 bg-[#111] border-b border-[#333] flex items-center px-3 sm:px-4 lg:hidden">
           <button onClick={() => setSidebarOpen(true)} className="text-gray-400 hover:text-white">
             <Menu size={24} />
           </button>
-          <span className="ml-4 font-serif text-[#E3C06A] font-bold tracking-wider">🍷 VinoVerse</span>
+          <BrandLogo size="sm" className="ml-3" />
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-br from-[#0a0a0a] to-[#1a1012]">
+        <main
+          className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-8 bg-gradient-to-br from-[#0a0a0a] to-[#1a1012] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#0f0f0f] [&::-webkit-scrollbar-thumb]:bg-[#E3C06A]/75 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[#E3C06A]"
+          style={{ scrollbarColor: "#E3C06A #0f0f0f" }}
+        >
           <Outlet key={`${state.user.id}-${sessionRefreshKey}`} />
         </main>
       </div>
@@ -159,3 +166,4 @@ export const DashboardLayout = () => {
     </div>
   );
 };
+

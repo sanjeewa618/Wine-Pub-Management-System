@@ -126,6 +126,31 @@
 
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #E3C06A #1a1a1a;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(227, 192, 106, 0.75);
+    border-radius: 9999px;
+    border: 2px solid #1a1a1a;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: #E3C06A;
   }
 
   /**
