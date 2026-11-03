@@ -1,6 +1,13 @@
-const { Product } = require("../models/Product");
+﻿const { Product } = require("../models/Product");
 const { asyncHandler } = require("../utils/asyncHandler");
 const { ApiError } = require("../utils/ApiError");
+
+const {
+  getCache,
+  setCache,
+  deleteCache,
+  deleteCacheByPattern,
+} = require("../utils/cacheService");
 
 function getProductType(req) {
   return req.productType || (req.baseUrl.includes("bites") ? "bite" : "wine");
@@ -73,6 +80,28 @@ const listProducts = asyncHandler(async (req, res) => {
   const productType = getProductType(req);
   const { category, brand, country, originType, minPrice, maxPrice, search } = req.query;
 
+  // Create a consistent cache key using the filters
+  const cacheFilters = {
+    category: category || "",
+    brand: brand || "",
+    country: country || "",
+    originType: originType || "",
+    minPrice: minPrice || "",
+    maxPrice: maxPrice || "",
+    search: search || "",
+  };
+
+  const cacheKey = `products:list:${productType}:${JSON.stringify(cacheFilters)}`;
+
+  // Check Redis cache first
+  const cachedProducts = await getCache(cacheKey);
+
+  if (cachedProducts) {
+    console.log("Products served from Redis cache");
+    return res.json(cachedProducts);
+  }
+
+  // If cache is unavailable, fetch from MongoDB
   const filter = {
     productType:
       productType === "wine"
@@ -95,34 +124,100 @@ const listProducts = asyncHandler(async (req, res) => {
   }
 
   const products = await Product.find(filter).sort({ createdAt: -1 });
-  res.json({ success: true, items: products });
+
+  const response = {
+    success: true,
+    items: products,
+  };
+
+  // Store the result in Redis for 5 minutes
+  await setCache(cacheKey, response, 300);
+
+  res.json(response);
 });
 
 const getProduct = asyncHandler(async (req, res) => {
+  const cacheKey = `products:item:${req.params.id}`;
+
+  // Check Redis cache first
+  const cachedProduct = await getCache(cacheKey);
+
+  if (cachedProduct) {
+    console.log("Product served from Redis cache");
+    return res.json({
+      success: true,
+      item: cachedProduct,
+    });
+  }
+
+  // If cache is unavailable, fetch from MongoDB
   const product = await Product.findById(req.params.id);
-  if (!product) throw new ApiError(404, "Product not found");
-  res.json({ success: true, item: product });
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  // Store product in Redis for 5 minutes
+  await setCache(cacheKey, product.toObject(), 300);
+
+  res.json({
+    success: true,
+    item: product,
+  });
 });
 
 const createProduct = asyncHandler(async (req, res) => {
   const productType = getProductType(req);
   const payload = normalizeProductPayload(req.body, productType);
+
   const product = await Product.create(payload);
-  res.status(201).json({ success: true, item: product });
+
+  // Clear product list caches
+  await deleteCacheByPattern("products:list:*");
+
+  res.status(201).json({
+    success: true,
+    item: product,
+  });
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
   const productType = getProductType(req);
   const payload = normalizeProductPayload(req.body, productType);
-  const product = await Product.findByIdAndUpdate(req.params.id, payload, { new: true });
-  if (!product) throw new ApiError(404, "Product not found");
-  res.json({ success: true, item: product });
+
+  const product = await Product.findByIdAndUpdate(
+    req.params.id,
+    payload,
+    { new: true }
+  );
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  await deleteCache(`products:item:${req.params.id}`);
+  await deleteCacheByPattern("products:list:*");
+
+  res.json({
+    success: true,
+    item: product,
+  });
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id);
-  if (!product) throw new ApiError(404, "Product not found");
-  res.json({ success: true, message: "Product removed" });
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  await deleteCache(`products:item:${req.params.id}`);
+  await deleteCacheByPattern("products:list:*");
+
+  res.json({
+    success: true,
+    message: "Product removed",
+  });
 });
 
 module.exports = { listProducts, getProduct, createProduct, updateProduct, deleteProduct };
