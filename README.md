@@ -1,4 +1,4 @@
-
+﻿
 # Wine Pub Management System
 
 ## 🏗️ System Overview
@@ -34,7 +34,7 @@ Wine-Pub-Management-System/
 ├── frontend/     # React + Vite client app
 │   └── src/
 │       ├── app/            # App, routes, layouts
-│       ├── pages/          # Page components (Dashboard, Cart, etc.)
+```bashboard, Cart, etc.)
 │       ├── components/     # UI components
 │       └── styles/         # Tailwind, CSS
 └── README.md
@@ -54,7 +54,7 @@ Wine-Pub-Management-System/
 ### 2. Seller
 - Manage own product listings (wines, bites, etc.)
 - View and process orders
-- Analytics dashboard (sales, stock)
+```bashboard (sales, stock)
 - Update business profile & settings
 
 ### 3. Admin
@@ -118,7 +118,7 @@ flowchart TD
 | /api/reservations         | POST   | Create reservation                |
 | /api/orders               | POST   | Place order                       |
 | /api/payments/process     | POST   | Process payment                   |
-| /api/admin/analytics      | GET    | Admin analytics dashboard         |
+```bashboard         |
 
 ---
 
@@ -144,20 +144,41 @@ erDiagram
 
 ```mermaid
 flowchart LR
-	Login --> Dashboard
-	Dashboard --> |Browse| Catalog
+```bashboard
+```bashboard --> |Browse| Catalog
 	Catalog --> |Add to Cart| Cart
 	Cart --> |Checkout| Order
-	Dashboard --> |Book Table| Reservation
-	Dashboard --> |View Orders| OrderHistory
-	Dashboard --> |Settings| Profile
+```bashboard --> |Book Table| Reservation
+```bashboard --> |View Orders| OrderHistory
+```bashboard --> |Settings| Profile
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Backend
+### 🐳 Docker Setup (Recommended)
+
+1. Start all services (MongoDB, Redis, Backend, Frontend):
+```bash
+docker compose up -d
+```
+
+2. Seed demo data:
+```bash
+docker compose exec backend npm run seed
+```
+
+3. Browser එකෙන් application එක open කරන්න:
+- [Open Wine Pub Management System](http://localhost:8080)
+
+Login page එක සහ application UI එක load වෙනවාද බලන්න.
+
+---
+
+### 💻 Manual Local Setup
+
+#### 1. Backend
 ```bash
 cd backend
 cp .env.example .env
@@ -165,14 +186,14 @@ npm install
 npm run dev
 ```
 
-### 2. Frontend
+#### 2. Frontend
 ```bash
 cd frontend/src
 npm install
 npm run dev
 ```
 
-### 3. Seed Demo Data
+#### 3. Seed Demo Data
 ```bash
 cd backend
 npm run seed
