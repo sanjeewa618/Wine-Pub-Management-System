@@ -16,6 +16,8 @@ Wine Pub Management System is a full-stack, role-based platform for managing a m
 | Database   | MongoDB (Mongoose ODM)                        |
 | Auth       | JWT, bcryptjs, Role-based access              |
 | Email      | Nodemailer                                    |
+| Broker     | RabbitMQ                                      |
+| Cache      | Redis                                         |
 | Dev Tools  | Vite, ESLint, Prettier                        |
 
 ---
@@ -144,13 +146,13 @@ erDiagram
 
 ```mermaid
 flowchart LR
-```bashboard
-```bashboard --> |Browse| Catalog
+	Login --> Dashboard
+	Dashboard --> |Browse| Catalog
 	Catalog --> |Add to Cart| Cart
 	Cart --> |Checkout| Order
-```bashboard --> |Book Table| Reservation
-```bashboard --> |View Orders| OrderHistory
-```bashboard --> |Settings| Profile
+	Dashboard --> |Book Table| Reservation
+	Dashboard --> |View Orders| OrderHistory
+	Dashboard --> |Settings| Profile
 ```
 
 ---
@@ -159,7 +161,7 @@ flowchart LR
 
 ### 🐳 Docker Setup (Recommended)
 
-1. Start all services (MongoDB, Redis, Backend, Frontend):
+1. Start all services (MongoDB, Redis, RabbitMQ, Backend, Frontend):
 ```bash
 docker compose up -d
 ```
@@ -171,8 +173,13 @@ docker compose exec backend npm run seed
 
 3. Browser එකෙන් application එක open කරන්න:
 - [Open Wine Pub Management System](http://localhost:8080)
+- Login page එක සහ application UI එක load වෙනවාද බලන්න.
 
-Login page එක සහ application UI එක load වෙනවාද බලන්න.
+4. Check RabbitMQ dashboard:
+- Browser එකෙන් open කරන්න: [RabbitMQ Management Dashboard](http://localhost:15672)
+- **Login details:**
+  - **Username:** `winepub`
+  - **Password:** ඔයා root `.env` file එකට දාපු password එක (`RABBITMQ_DEFAULT_PASS`)
 
 ---
 

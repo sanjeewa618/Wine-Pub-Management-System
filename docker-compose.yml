@@ -26,6 +26,23 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: wine-pub-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-winepub}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?Please set RABBITMQ_DEFAULT_PASS in root .env}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "127.0.0.1:15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -39,12 +56,15 @@ services:
       MONGODB_URI: mongodb://mongodb:27017/wine_pub_management
       REDIS_URL: redis://redis:6379
       CLIENT_URL: http://localhost:8080
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-winepub}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672
     expose:
       - "5000"
     depends_on:
       mongodb:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test:
@@ -75,4 +95,4 @@ services:
 volumes:
   mongodb_data:
   redis_data:
-
+  rabbitmq_data:
