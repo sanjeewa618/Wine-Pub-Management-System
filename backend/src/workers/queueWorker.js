@@ -32,7 +32,10 @@ async function processTestMessage(channel, message) {
 
 async function processSellerOrderMessage(channel, message) {
   try {
-    const job = JSON.parse(message.content.toString());
+    const messageData = JSON.parse(message.content.toString());
+
+    // Extract the actual job payload.
+    const job = messageData.payload || messageData;
 
     console.log("\nSeller order notification job received!");
     console.log("Job data:", job);
