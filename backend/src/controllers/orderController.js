@@ -3,7 +3,9 @@ const { Cart } = require("../models/Cart");
 const { Product } = require("../models/Product");
 const { SellerProduct } = require("../models/SellerProduct");
 const { Notification } = require("../models/Notification");
-const { notifySellersForOrder } = require("../utils/sellerOrderAlerts");
+const {
+  enqueueSellerOrderNotification,
+} = require("../utils/sellerOrderQueue");
 const { asyncHandler } = require("../utils/asyncHandler");
 const { ApiError } = require("../utils/ApiError");
 
@@ -99,7 +101,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
     const paymentMethod = String(order.paymentMethod || "").toLowerCase();
     if (paymentMethod === "cash" || paymentMethod === "cod") {
-      await notifySellersForOrder({
+      await enqueueSellerOrderNotification({
         order,
         actor: req.user,
         mode: "cod",

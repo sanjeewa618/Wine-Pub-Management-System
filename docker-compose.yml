@@ -1,3 +1,4 @@
+
 services:
   mongodb:
     image: mongo:7.0
@@ -76,6 +77,23 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  # RabbitMQ Background Worker
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wine-pub-worker
+    restart: unless-stopped
+    command: ["node", "src/workers/queueWorker.js"]
+    environment:
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-winepub}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/wine_pub_management}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   frontend:
     build:
