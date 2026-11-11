@@ -18,6 +18,11 @@ async function connectRedis() {
     console.log("Connecting to Redis...");
   });
 
+  redisClient.on("reconnecting", () => {
+    isRedisConnected = false;
+    console.log("Reconnecting to Redis...");
+  });
+
   redisClient.on("ready", () => {
     isRedisConnected = true;
     console.log("Redis connected successfully");
@@ -43,7 +48,7 @@ function getRedisClient() {
 }
 
 function isRedisReady() {
-  return isRedisConnected;
+  return Boolean(redisClient && redisClient.isReady && isRedisConnected);
 }
 
 module.exports = {
