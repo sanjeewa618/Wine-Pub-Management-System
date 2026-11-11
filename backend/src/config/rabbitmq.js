@@ -1,4 +1,5 @@
 const amqp = require("amqplib");
+const { setupQueueTopology } = require("./queueTopology");
 
 let connection = null;
 let channel = null;
@@ -17,7 +18,8 @@ async function connectRabbitMQ() {
 
     connection = await amqp.connect(rabbitMQUrl);
 
-    channel = await connection.createChannel();
+    // Use a ConfirmChannel for reliable publisher confirms
+    channel = await connection.createConfirmChannel();
 
     connection.on("error", (error) => {
       console.error("RabbitMQ connection error:", error.message);
@@ -29,7 +31,10 @@ async function connectRabbitMQ() {
       channel = null;
     });
 
-    console.log("RabbitMQ connected successfully!");
+    // Ensure queue topology is asserted whenever channel is established
+    await setupQueueTopology(channel);
+
+    console.log("RabbitMQ connected with ConfirmChannel successfully!");
 
     return channel;
   } catch (error) {
@@ -72,4 +77,3 @@ module.exports = {
   getRabbitChannel,
   closeRabbitMQ,
 };
-

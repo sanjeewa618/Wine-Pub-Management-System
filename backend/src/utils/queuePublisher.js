@@ -1,36 +1,41 @@
 const { getRabbitChannel } = require("../config/rabbitmq");
 
-async function publishToQueue(queueName, payload) {
+async function publishToQueue(queueName, payload, options = {}) {
   if (!queueName) {
     throw new Error("Queue name is required");
   }
 
   const channel = getRabbitChannel();
 
-  // Create the queue if it does not already exist.
-  await channel.assertQueue(queueName, {
-    durable: true,
-  });
-
-  const message = {
-    payload,
-    queuedAt: new Date().toISOString(),
-  };
+  // If the message is already structured (e.g., retry or DLQ routing), preserve structure;
+  // otherwise wrap payload with timestamp.
+  const message =
+    payload && typeof payload === "object" && payload.queuedAt && payload.payload !== undefined
+      ? payload
+      : {
+          payload,
+          queuedAt: new Date().toISOString(),
+          metadata: options.metadata || {},
+        };
 
   const messageBuffer = Buffer.from(JSON.stringify(message));
 
-  // Publish a persistent message.
-  const published = channel.sendToQueue(
-    queueName,
-    messageBuffer,
-    {
-      persistent: true,
-      contentType: "application/json",
-    }
-  );
+  const publishOptions = {
+    persistent: true,
+    contentType: "application/json",
+    headers: options.headers || {},
+    ...(options.publishOptions || {}),
+  };
+
+  const published = channel.sendToQueue(queueName, messageBuffer, publishOptions);
 
   if (!published) {
-    console.warn("RabbitMQ write buffer is full.");
+    console.warn(`RabbitMQ write buffer full while publishing to ${queueName}`);
+  }
+
+  // When ConfirmChannel is available, wait for publisher confirmation from broker
+  if (typeof channel.waitForConfirms === "function") {
+    await channel.waitForConfirms();
   }
 
   console.log(`Message published to queue: ${queueName}`);
@@ -41,4 +46,3 @@ async function publishToQueue(queueName, payload) {
 module.exports = {
   publishToQueue,
 };
-

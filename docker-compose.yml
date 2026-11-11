@@ -58,6 +58,7 @@ services:
       REDIS_URL: redis://redis:6379
       CLIENT_URL: http://localhost:8080
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-winepub}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672
+      RABBITMQ_RETRY_DELAY_MS: ${RABBITMQ_RETRY_DELAY_MS:-10000}
     expose:
       - "5000"
     depends_on:
@@ -89,6 +90,7 @@ services:
     environment:
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-winepub}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672
       MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/wine_pub_management}
+      RABBITMQ_RETRY_DELAY_MS: ${RABBITMQ_RETRY_DELAY_MS:-10000}
     depends_on:
       mongodb:
         condition: service_healthy

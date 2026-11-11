@@ -4,7 +4,7 @@ const { User } = require("../models/User");
 const { Notification } = require("../models/Notification");
 const { sendEmail } = require("./emailService");
 
-async function notifySellersForOrder({ order, actor, payment = null, mode = "paid" }) {
+async function notifySellersForOrder({ order, actor, payment = null, mode = "paid", notificationId = null }) {
   if (!order || !Array.isArray(order.items) || order.items.length === 0) {
     return;
   }
@@ -75,42 +75,54 @@ async function notifySellersForOrder({ order, actor, payment = null, mode = "pai
           ? `Payment completed · ${itemList.length} item(s) awaiting confirmation`
           : `Cash on delivery order · ${itemList.length} item(s) awaiting confirmation`;
 
-      await Notification.findOneAndUpdate(
-        {
-          type: "seller_order_alert",
-          targetRole: "seller",
-          userId: sellerId,
-          "metadata.orderId": String(order._id),
-        },
-        {
-          $set: {
+      const scopedNotificationId = notificationId ? `${notificationId}_${sellerId}` : null;
+
+      try {
+        await Notification.findOneAndUpdate(
+          {
             type: "seller_order_alert",
-            title,
-            message,
             targetRole: "seller",
             userId: sellerId,
-            isRead: false,
-            metadata: {
-              orderId: String(order._id),
-              trackingNumber: order.trackingNumber,
-              paymentMethod,
-              paymentStatus,
-              orderStatus,
-              adminName: actor?.name || "Admin",
-              adminEmail: actor?.email || "",
-              orderType: order.orderType,
-              items: itemList,
-              total: order.total,
-              subtotal: order.subtotal,
-              tax: order.tax,
-              deliveryCharge: order.deliveryCharge,
-              paymentReference,
-              receiptId,
+            "metadata.orderId": String(order._id),
+          },
+          {
+            $set: {
+              notificationId: scopedNotificationId,
+              type: "seller_order_alert",
+              title,
+              message,
+              targetRole: "seller",
+              userId: sellerId,
+              isRead: false,
+              metadata: {
+                notificationId: notificationId || null,
+                orderId: String(order._id),
+                trackingNumber: order.trackingNumber,
+                paymentMethod,
+                paymentStatus,
+                orderStatus,
+                adminName: actor?.name || "Admin",
+                adminEmail: actor?.email || "",
+                orderType: order.orderType,
+                items: itemList,
+                total: order.total,
+                subtotal: order.subtotal,
+                tax: order.tax,
+                deliveryCharge: order.deliveryCharge,
+                paymentReference,
+                receiptId,
+              },
             },
           },
-        },
-        { upsert: true, setDefaultsOnInsert: true }
-      );
+          { upsert: true, setDefaultsOnInsert: true }
+        );
+      } catch (dbErr) {
+        if (dbErr.code === 11000) {
+          console.warn(`[DUPLICATE DB CONSTRAINT] Seller notification record already exists for seller ${sellerId} and order ${order._id}. Skipping duplicate insertion.`);
+        } else {
+          throw dbErr;
+        }
+      }
 
       if (seller?.email) {
         const listText = itemList
