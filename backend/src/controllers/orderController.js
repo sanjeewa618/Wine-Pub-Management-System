@@ -59,10 +59,6 @@ async function resolveDirectOrderItems(items = []) {
     resolvedItems.push(normalizeOrderItem(item, product));
   }
 
-  if (sellerIds.size > 1) {
-    throw new ApiError(400, "Please create one seller request at a time");
-  }
-
   return {
     items: resolvedItems,
     sellerIds: Array.from(sellerIds),
@@ -187,8 +183,46 @@ const listOrders = asyncHandler(async (req, res) => {
 });
 
 const getOrder = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id);
+  const order = await Order.findById(req.params.id).populate({
+    path: "userId",
+    select: "name email role",
+  });
   if (!order) throw new ApiError(404, "Order not found");
+
+  const role = String(req.user?.role || "").toLowerCase();
+
+  // If requester is a seller, restrict access and visibility to only their assigned items
+  if (role === "seller") {
+    const sellerId = String(req.user._id);
+    const sellerItems = (order.items || []).filter((item) => {
+      const itemSellerId = String(item?.sellerId || item?.productId?.sellerId || "");
+      return itemSellerId === sellerId;
+    });
+
+    if (sellerItems.length === 0) {
+      throw new ApiError(403, "You are not authorized to view this order");
+    }
+
+    const sellerTotal = sellerItems.reduce(
+      (sum, item) => sum + Number(item?.price || 0) * Number(item?.quantity || 0),
+      0
+    );
+
+    return res.json({
+      success: true,
+      order: {
+        ...order.toObject(),
+        items: sellerItems,
+        sellerTotal,
+      },
+    });
+  }
+
+  // If customer, ensure they own the order
+  if (role !== "admin" && String(order.userId?._id || order.userId) !== String(req.user._id)) {
+    throw new ApiError(403, "You are not authorized to view this order");
+  }
+
   res.json({ success: true, order });
 });
 

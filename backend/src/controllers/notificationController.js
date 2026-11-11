@@ -33,6 +33,11 @@ async function syncMissingSellerCodAlerts(sellerId) {
         selectedSize: item?.selectedSize || "",
       }));
 
+      const sellerSubtotal = formattedItems.reduce(
+        (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
+        0
+      );
+
       await Notification.findOneAndUpdate(
         {
           type: "seller_order_alert",
@@ -58,6 +63,7 @@ async function syncMissingSellerCodAlerts(sellerId) {
               adminEmail: order.userId?.email || "",
               orderType: order.orderType,
               items: formattedItems,
+              sellerSubtotal,
               total: order.total,
               subtotal: order.subtotal,
               tax: order.tax,

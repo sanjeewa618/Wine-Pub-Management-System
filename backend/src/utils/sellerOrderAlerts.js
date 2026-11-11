@@ -76,6 +76,7 @@ async function notifySellersForOrder({ order, actor, payment = null, mode = "pai
           : `Cash on delivery order · ${itemList.length} item(s) awaiting confirmation`;
 
       const scopedNotificationId = notificationId ? `${notificationId}_${sellerId}` : null;
+      const sellerSubtotal = itemList.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
 
       try {
         await Notification.findOneAndUpdate(
@@ -105,6 +106,7 @@ async function notifySellersForOrder({ order, actor, payment = null, mode = "pai
                 adminEmail: actor?.email || "",
                 orderType: order.orderType,
                 items: itemList,
+                sellerSubtotal,
                 total: order.total,
                 subtotal: order.subtotal,
                 tax: order.tax,
