@@ -1,11 +1,25 @@
-const { getRabbitChannel } = require("../config/rabbitmq");
+const { getRabbitChannel, isRabbitConnected } = require("../config/rabbitmq");
+
+async function obtainChannelWithRetry(maxWaitMs = 6000) {
+  const start = Date.now();
+  while (Date.now() - start < maxWaitMs) {
+    try {
+      return getRabbitChannel();
+    } catch (err) {
+      // Wait 400ms for connection recovery loop
+      await new Promise((r) => setTimeout(r, 400));
+    }
+  }
+  // Final attempt or throw
+  return getRabbitChannel();
+}
 
 async function publishToQueue(queueName, payload, options = {}) {
   if (!queueName) {
     throw new Error("Queue name is required");
   }
 
-  const channel = getRabbitChannel();
+  const channel = await obtainChannelWithRetry();
 
   // If the message is already structured (e.g., retry or DLQ routing), preserve structure;
   // otherwise wrap payload with timestamp.
@@ -30,7 +44,7 @@ async function publishToQueue(queueName, payload, options = {}) {
   const published = channel.sendToQueue(queueName, messageBuffer, publishOptions);
 
   if (!published) {
-    console.warn(`RabbitMQ write buffer full while publishing to ${queueName}`);
+    console.warn(`[PUBLISHER WARN] RabbitMQ write buffer full while publishing to ${queueName}`);
   }
 
   // When ConfirmChannel is available, wait for publisher confirmation from broker
@@ -38,7 +52,7 @@ async function publishToQueue(queueName, payload, options = {}) {
     await channel.waitForConfirms();
   }
 
-  console.log(`Message published to queue: ${queueName}`);
+  console.log(`[PUBLISHER SUCCESS] Message published and confirmed to queue: ${queueName}`);
 
   return published;
 }
